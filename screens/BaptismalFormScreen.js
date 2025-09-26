@@ -1,0 +1,842 @@
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+  StyleSheet,
+  Modal,
+  Dimensions,
+  Animated,
+  Easing
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from "../AuthContext";
+
+
+const { width, height } = Dimensions.get("window");
+
+const BaptismalFormScreen = () => {
+  const { loggedInUser } = useAuth();  // makukuha mo na yung email dito
+  const [requirementsModalVisible, setRequirementsModalVisible] = useState(false);
+  const [previewModalVisible, setPreviewModalVisible] = useState(false);
+  const navigation = useNavigation();
+  const fadeAnim = useState(new Animated.Value(0))[0];
+
+  const [formData, setFormData] = useState({
+    ContactNumber: "",
+    BaptismDate: "",
+    BaptismTime: "",
+    PaymentDate: "",
+    ChildName: "",
+    Religion: "",
+    BirthDate: "",
+    BirthPlace: "",
+    FatherName: "",
+    fatherBirthPlace: "",
+    MotherName: "",
+    MotherBirthPlace: "",
+    Address: "",
+    MarriageType: "",
+    ninong1: "",
+    ninong1_age: "",
+    ninong1_address: "",
+    ninang1: "",
+    ninang1_age: "",
+    ninang1_address: "",
+    ninong2: "",
+    ninong2_age: "",
+    ninong2_address: "",
+    ninang2: "",
+    ninang2_age: "",
+    ninang2_address: "",
+    email: loggedInUser?.email || "guest@example.com" // auto from login
+  });
+
+  const handleChange = (name, value) => {
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async () => {
+    const isEmptyField = Object.values(formData).some(
+      (value) =>
+        (typeof value === "string" && value.trim() === "") ||
+        value === null ||
+        value === undefined
+    );
+
+    if (isEmptyField) {
+      Alert.alert("Incomplete Form", "Please fill out all fields before submitting.");
+      return;
+    }
+
+    try {
+      const serverUrl = "http://10.203.3.62/system/baptismal_submit.php";
+      const response = await fetch(serverUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const text = await response.text();
+      let jsonResponse;
+      try {
+        jsonResponse = JSON.parse(text);
+      } catch {
+        Alert.alert("Server Error", "Invalid response from server.");
+        return;
+      }
+
+      if (jsonResponse.status === "success") {
+        Alert.alert(
+          "Success",
+          jsonResponse.message ||
+            "BAPTISMAL DATA SUBMITTED. Mag intay lamang po ng text message mula sa ating Secretary para sa pag kumpirma ng Binyag.",
+          [{ text: "OK", onPress: () => navigation.goBack() }]
+        );
+      } else {
+        Alert.alert("Submission Failed", jsonResponse.message || "Unknown error.");
+      }
+    } catch (error) {
+      Alert.alert("Network Error", error.message);
+    }
+  };
+
+  const handleCancel = () => {
+    Alert.alert("Cancel Confirmation", "Are you sure you want to cancel?", [
+      { text: "No", style: "cancel" },
+      { text: "Yes", onPress: () => navigation.goBack() },
+    ]);
+  };
+
+  const openPreviewModal = () => {
+    setPreviewModalVisible(true);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      easing: Easing.ease,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closePreviewModal = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 200,
+      easing: Easing.ease,
+      useNativeDriver: true,
+    }).start(() => setPreviewModalVisible(false));
+  };
+
+  const PreviewSection = ({ title, icon, children }) => (
+    <View style={previewStyles.section}>
+      <View style={previewStyles.sectionHeader}>
+        <Ionicons name={icon} size={20} color="#4a6ea9" />
+        <Text style={previewStyles.sectionTitle}>{title}</Text>
+      </View>
+      <View style={previewStyles.sectionContent}>
+        {children}
+      </View>
+    </View>
+  );
+
+  const PreviewField = ({ label, value }) => (
+    <View style={previewStyles.field}>
+      <Text style={previewStyles.fieldLabel}>{label}:</Text>
+      <Text style={previewStyles.fieldValue}>{value || "Not provided"}</Text>
+    </View>
+  );
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+            <Text style={styles.header}>BAPTISMAL FORM</Text>
+
+          {/* Contact & Schedule */}
+          <Text style={styles.sectionHeader}>📞 Contact & Schedule</Text>
+          <TextInput 
+            style={styles.input} 
+            placeholder="Contact Number" 
+            keyboardType="phone-pad"
+            onChangeText={(text) => handleChange("ContactNumber", text)} 
+          />
+          <TextInput 
+            style={styles.input} 
+            placeholder="Baptism Date (MM/DD/YYYY)" 
+            keyboardType="numbers-and-punctuation"
+            onChangeText={(text) => handleChange("BaptismDate", text)} 
+          />
+          <TextInput 
+            style={styles.input} 
+            placeholder="Baptism Time (HH:MM AM/PM)" 
+            keyboardType="numbers-and-punctuation"
+            onChangeText={(text) => handleChange("BaptismTime", text)} 
+          />
+          <TextInput 
+            style={styles.input} 
+            placeholder="Payment Date (MM/DD/YYYY)" 
+            keyboardType="numbers-and-punctuation"
+            onChangeText={(text) => handleChange("PaymentDate", text)} 
+          />
+
+          {/* Child's Information */}
+          <Text style={styles.sectionHeader}>👶 Child's Information</Text>
+          <TextInput style={styles.input} placeholder="Child's Name" onChangeText={(text) => handleChange("ChildName", text)} />
+          <TextInput style={styles.input} placeholder="Religion" onChangeText={(text) => handleChange("Religion", text)} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="Birth Date (MM/DD/YYYY)" 
+            keyboardType="numbers-and-punctuation"
+            onChangeText={(text) => handleChange("BirthDate", text)} 
+          />
+          <TextInput style={styles.input} placeholder="Birth Place" onChangeText={(text) => handleChange("BirthPlace", text)} />
+
+          {/* Parents' Information */}
+          <Text style={styles.sectionHeader}>👨‍👩‍👧 Parents' Information</Text>
+          <TextInput style={styles.input} placeholder="Father's Name" onChangeText={(text) => handleChange("FatherName", text)} />
+          <TextInput style={styles.input} placeholder="Father's Birth Place" onChangeText={(text) => handleChange("fatherBirthPlace", text)} />
+          <TextInput style={styles.input} placeholder="Mother's Name" onChangeText={(text) => handleChange("MotherName", text)} />
+          <TextInput style={styles.input} placeholder="Mother's Birth Place" onChangeText={(text) => handleChange("MotherBirthPlace", text)} />
+
+           {/* Address & Marriage */}
+           <Text style={styles.sectionHeader}>🏠 Address & Marriage</Text>
+          <TextInput style={styles.input} placeholder="Address" onChangeText={(text) => handleChange("Address", text)} />
+          <TextInput style={styles.input} placeholder="Marriage Type" onChangeText={(text) => handleChange("MarriageType", text)} />
+
+          {/* Sponsors */}
+          <Text style={styles.sectionHeader}>🎉 Sponsors</Text>
+
+          {/* Ninong 1 */}
+          <TextInput style={styles.input} placeholder="NINONG SA BINYAG 1" onChangeText={(text) => handleChange("ninong1", text)} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="EDAD" 
+            keyboardType="numeric" 
+            onChangeText={(text) => handleChange("ninong1_age", text)} 
+          />
+          <TextInput style={styles.input} placeholder="TIRAHAN" onChangeText={(text) => handleChange("ninong1_address", text)} />
+
+          {/* Ninang 1 */}
+          <TextInput style={styles.input} placeholder="NINANG SA BINYAG 1" onChangeText={(text) => handleChange("ninang1", text)} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="EDAD" 
+            keyboardType="numeric" 
+            onChangeText={(text) => handleChange("ninang1_age", text)} 
+          />
+          <TextInput style={styles.input} placeholder="TIRAHAN" onChangeText={(text) => handleChange("ninang1_address", text)} />
+
+          {/* Ninong 2 */}
+          <TextInput style={styles.input} placeholder="NINONG SA BINYAG 2" onChangeText={(text) => handleChange("ninong2", text)} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="EDAD" 
+            keyboardType="numeric" 
+            onChangeText={(text) => handleChange("ninong2_age", text)} 
+          />
+          <TextInput style={styles.input} placeholder="TIRAHAN" onChangeText={(text) => handleChange("ninong2_address", text)} />
+
+          {/* Ninang 2 */}
+          <TextInput style={styles.input} placeholder="NINANG SA BINYAG 2" onChangeText={(text) => handleChange("ninang2", text)} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="EDAD" 
+            keyboardType="numeric" 
+            onChangeText={(text) => handleChange("ninang2_age", text)} 
+          />
+          <TextInput style={styles.input} placeholder="TIRAHAN" onChangeText={(text) => handleChange("ninang2_address", text)} />
+
+          {/* Buttons */}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.button, styles.submitButton]}
+              onPress={openPreviewModal}
+            >
+              <Ionicons name="eye-outline" size={18} color="white" style={{ marginRight: 8 }} />
+              <Text style={styles.buttonText}>Preview</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
+              onPress={handleCancel}
+            >
+              <Ionicons name="close-circle-outline" size={18} color="white" style={{ marginRight: 8 }} />
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.requirementsButton]}
+              onPress={() => setRequirementsModalVisible(true)}
+            >
+              <Ionicons name="document-text-outline" size={18} color="white" style={{ marginRight: 8 }} />
+              <Text style={styles.buttonText}>Demands</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Improved Requirements Modal */}
+          <Modal visible={requirementsModalVisible} animationType="fade" transparent>
+            <View style={demandStyles.modalContainer}>
+              <View style={demandStyles.modalContent}>
+                <View style={demandStyles.header}>
+                  <Text style={demandStyles.title}>Requirements for Baptism</Text>
+                  <TouchableOpacity 
+                    style={demandStyles.closeButton}
+                    onPress={() => setRequirementsModalVisible(false)}
+                  >
+                    <Ionicons name="close" size={24} color="#666" />
+                  </TouchableOpacity>
+                </View>
+                
+                <ScrollView style={demandStyles.scrollContainer}>
+                  <View style={demandStyles.section}>
+                    <View style={demandStyles.sectionHeader}>
+                      <Ionicons name="list" size={20} color="#4a6ea9" />
+                      <Text style={demandStyles.sectionTitle}>Required Documents</Text>
+                    </View>
+                    <View style={demandStyles.list}>
+                      <View style={demandStyles.listItem}>
+                        <View style={demandStyles.bullet} />
+                        <Text style={demandStyles.listText}>Birth Certificate of the child</Text>
+                      </View>
+                      <View style={demandStyles.listItem}>
+                        <View style={demandStyles.bullet} />
+                        <Text style={demandStyles.listText}>Marriage Certificate of Parents (if applicable)</Text>
+                      </View>
+                      <View style={demandStyles.listItem}>
+                        <View style={demandStyles.bullet} />
+                        <Text style={demandStyles.listText}>List of Godparents (at least 2, maximum of 5 pairs)</Text>
+                      </View>
+                      <View style={demandStyles.listItem}>
+                        <View style={demandStyles.bullet} />
+                        <Text style={demandStyles.listText}>Baptismal Seminar Attendance</Text>
+                      </View>
+                    </View>
+                  </View>
+                  
+                  <View style={demandStyles.divider} />
+                  
+                  <View style={demandStyles.section}>
+                    <View style={demandStyles.sectionHeader}>
+                      <Ionicons name="alert-circle" size={20} color="#e74c3c" />
+                      <Text style={demandStyles.sectionTitle}>Important Reminders</Text>
+                    </View>
+                    <View style={demandStyles.reminderContainer}>
+                      <View style={demandStyles.reminderCard}>
+                        <View style={demandStyles.reminderHeader}>
+                          <Ionicons name="information-circle" size={18} color="#3498db" />
+                          <Text style={demandStyles.reminderTitle}>Fee Options</Text>
+                        </View>
+                        <View style={demandStyles.feeOption}>
+                          <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
+                          <Text style={demandStyles.feeText}><Text style={demandStyles.bold}>Special - ₱1,500</Text> (Tuesday - Saturday)</Text>
+                        </View>
+                        <View style={demandStyles.feeOption}>
+                          <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
+                          <Text style={demandStyles.feeText}><Text style={demandStyles.bold}>Regular - ₱1,000</Text> (Sunday)</Text>
+                        </View>
+                        <View style={demandStyles.feeOption}>
+                          <Ionicons name="close-circle" size={16} color="#e74c3c" />
+                          <Text style={demandStyles.feeText}><Text style={demandStyles.bold}>Monday</Text> - Parish Office Closed</Text>
+                        </View>
+                      </View>
+                      
+                      <View style={demandStyles.note}>
+                        <Ionicons name="time" size={16} color="#f39c12" />
+                        <Text style={demandStyles.noteText}>Please submit all requirements at least one week before the baptism date.</Text>
+                      </View>
+                    </View>
+                  </View>
+                </ScrollView>
+                
+                <TouchableOpacity
+                  style={demandStyles.acknowledgeButton}
+                  onPress={() => setRequirementsModalVisible(false)}
+                >
+                  <Ionicons name="checkmark" size={20} color="white" />
+                  <Text style={demandStyles.acknowledgeButtonText}>I Understand</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+
+          {/* Preview Modal */}
+          <Modal visible={previewModalVisible} animationType="fade" transparent>
+            <View style={previewStyles.modalContainer}>
+              <Animated.View style={[previewStyles.modalContent, { opacity: fadeAnim }]}>
+                <View style={previewStyles.modalHeader}>
+                  <Text style={previewStyles.modalTitle}>Baptismal Form Preview</Text>
+                  <Text style={previewStyles.modalSubtitle}>Please review your information before submitting</Text>
+                </View>
+
+                <ScrollView style={previewStyles.scrollContainer}>
+                  <PreviewSection title="Contact & Schedule" icon="calendar">
+                    <PreviewField label="Contact Number" value={formData.ContactNumber} />
+                    <PreviewField label="Baptism Date" value={formData.BaptismDate} />
+                    <PreviewField label="Baptism Time" value={formData.BaptismTime} />
+                    <PreviewField label="Payment Date" value={formData.PaymentDate} />
+                  </PreviewSection>
+
+                  <PreviewSection title="Child's Information" icon="person">
+                    <PreviewField label="Child's Name" value={formData.ChildName} />
+                    <PreviewField label="Religion" value={formData.Religion} />
+                    <PreviewField label="Birth Date" value={formData.BirthDate} />
+                    <PreviewField label="Birth Place" value={formData.BirthPlace} />
+                  </PreviewSection>
+
+                  <PreviewSection title="Parents' Information" icon="people">
+                    <PreviewField label="Father's Name" value={formData.FatherName} />
+                    <PreviewField label="Father's Birth Place" value={formData.fatherBirthPlace} />
+                    <PreviewField label="Mother's Name" value={formData.MotherName} />
+                    <PreviewField label="Mother's Birth Place" value={formData.MotherBirthPlace} />
+                  </PreviewSection>
+
+                  <PreviewSection title="Address & Marriage" icon="home">
+                    <PreviewField label="Address" value={formData.Address} />
+                    <PreviewField label="Marriage Type" value={formData.MarriageType} />
+                  </PreviewSection>
+
+                  <PreviewSection title="Sponsors (Ninong 1)" icon="man">
+                    <PreviewField label="Name" value={formData.ninong1} />
+                    <PreviewField label="Age" value={formData.ninong1_age} />
+                    <PreviewField label="Address" value={formData.ninong1_address} />
+                  </PreviewSection>
+
+                  <PreviewSection title="Sponsors (Ninang 1)" icon="woman">
+                    <PreviewField label="Name" value={formData.ninang1} />
+                    <PreviewField label="Age" value={formData.ninang1_age} />
+                    <PreviewField label="Address" value={formData.ninang1_address} />
+                  </PreviewSection>
+
+                  <PreviewSection title="Sponsors (Ninong 2)" icon="man">
+                    <PreviewField label="Name" value={formData.ninong2} />
+                    <PreviewField label="Age" value={formData.ninong2_age} />
+                    <PreviewField label="Address" value={formData.ninong2_address} />
+                  </PreviewSection>
+
+                  <PreviewSection title="Sponsors (Ninang 2)" icon="woman">
+                    <PreviewField label="Name" value={formData.ninang2} />
+                    <PreviewField label="Age" value={formData.ninang2_age} />
+                    <PreviewField label="Address" value={formData.ninang2_address} />
+                  </PreviewSection>
+                </ScrollView>
+
+                <View style={previewStyles.modalFooter}>
+                  <TouchableOpacity
+                    style={[previewStyles.footerButton, previewStyles.editButton]}
+                    onPress={closePreviewModal}
+                  >
+                    <Ionicons name="create-outline" size={18} color="#4a6ea9" />
+                    <Text style={previewStyles.editButtonText}>Edit Information</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[previewStyles.footerButton, previewStyles.submitButton]}
+                    onPress={() => {
+                      closePreviewModal();
+                      handleSubmit();
+                    }}
+                  >
+                    <Ionicons name="checkmark-circle-outline" size={18} color="white" />
+                    <Text style={previewStyles.submitButtonText}>Confirm Submission</Text>
+                  </TouchableOpacity>
+                </View>
+              </Animated.View>
+            </View>
+          </Modal>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { padding: 20, backgroundColor: "#fff" },
+  header: {
+    fontSize: 30,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+    marginTop: height * 0.08,
+    color: "#2c3e50",
+  },
+  sectionHeader: { 
+    fontSize: 18, 
+    fontWeight: "bold", 
+    marginTop: 20, 
+    marginBottom: 10,
+    color: "#3498db",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 10,
+    backgroundColor: "#f9f9f9",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+    marginBottom: Platform.OS === "android" ? 30 : 20,
+  },
+  button: {
+    flex: 1,
+    marginHorizontal: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    height: 45,
+    borderRadius: 8,
+    flexDirection: 'row',
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  submitButton: { 
+    backgroundColor: "#27ae60",
+  },
+  cancelButton: { 
+    backgroundColor: "#e74c3c",
+  },
+  requirementsButton: { 
+    backgroundColor: "#3498db",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 15,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  closeButton: {
+    marginTop: 20,
+    backgroundColor: "#e74c3c",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    width: "100%",
+    alignItems: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    width: "80%",
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+  },
+  modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10, textAlign: "center" },
+  modalText: { fontSize: 16, marginBottom: 5 },
+});
+
+const previewStyles = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.7)",
+  },
+  modalContent: {
+    width: "90%",
+    maxHeight: "85%",
+    backgroundColor: "white",
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.32,
+    shadowRadius: 5.46,
+    elevation: 9,
+  },
+  modalHeader: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+    backgroundColor: "#f8f9fa",
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+    color: "#2c3e50",
+    marginBottom: 5,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    textAlign: "center",
+    color: "#7f8c8d",
+  },
+  scrollContainer: {
+    padding: 15,
+    maxHeight: height * 0.5,
+  },
+  section: {
+    marginBottom: 20,
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 15,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eaeaea",
+    paddingBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#2c3e50",
+    marginLeft: 10,
+  },
+  sectionContent: {
+    paddingHorizontal: 5,
+  },
+  field: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+    alignItems: "flex-start",
+  },
+  fieldLabel: {
+    fontSize: 14,
+    color: "#7f8c8d",
+    fontWeight: "500",
+    flex: 1,
+  },
+  fieldValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#2c3e50",
+    flex: 2,
+    textAlign: "right",
+  },
+  modalFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+    backgroundColor: "#f8f9fa",
+  },
+  footerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  editButton: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "#4a6ea9",
+  },
+  submitButton: {
+    backgroundColor: "#27ae60",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  editButtonText: {
+    color: "#4a6ea9",
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+  submitButtonText: {
+    color: "white",
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+});
+
+const demandStyles = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.7)",
+  },
+  modalContent: {
+    width: "90%",
+    maxHeight: "85%",
+    backgroundColor: "white",
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.32,
+    shadowRadius: 5.46,
+    elevation: 9,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+    backgroundColor: "#f8f9fa",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#2c3e50",
+  },
+  closeButton: {
+    padding: 4,
+  },
+  scrollContainer: {
+    padding: 20,
+    maxHeight: height * 0.6,
+  },
+  section: {
+    marginBottom: 20,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#2c3e50",
+    marginLeft: 10,
+  },
+  list: {
+    paddingLeft: 10,
+  },
+  listItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 12,
+  },
+  bullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#4a6ea9",
+    marginTop: 8,
+    marginRight: 12,
+  },
+  listText: {
+    fontSize: 15,
+    color: "#34495e",
+    flex: 1,
+    lineHeight: 22,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#ecf0f1",
+    marginVertical: 20,
+  },
+  reminderContainer: {
+    paddingLeft: 10,
+  },
+  reminderCard: {
+    backgroundColor: "#f8f9fa",
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 15,
+  },
+  reminderHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  reminderTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#2c3e50",
+    marginLeft: 8,
+  },
+  feeOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  feeText: {
+    fontSize: 14,
+    color: "#34495e",
+    marginLeft: 8,
+  },
+  bold: {
+    fontWeight: "bold",
+  },
+  note: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#fff4e5",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  noteText: {
+    fontSize: 13,
+    color: "#e67e22",
+    marginLeft: 8,
+    flex: 1,
+    fontStyle: "italic",
+  },
+  acknowledgeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#3498db",
+    padding: 16,
+    margin: 20,
+    borderRadius: 8,
+  },
+  acknowledgeButtonText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 16,
+    marginLeft: 8,
+  },
+});
+
+export default BaptismalFormScreen;
