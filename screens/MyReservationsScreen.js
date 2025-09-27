@@ -60,7 +60,7 @@ const MyReservationsScreen = ({ route, navigation }) => {
   const fetchReservations = async (email) => {
     try {
       const response = await fetch(
-        `http://10.203.3.62/system/get_reservations.php?email=${encodeURIComponent(email)}`
+        `http://192.168.1.34/system/get_reservations.php?email=${encodeURIComponent(email)}`
       );
 
       const text = await response.text();
@@ -103,7 +103,7 @@ const MyReservationsScreen = ({ route, navigation }) => {
     try {
       // Call API to mark reservation as deleted for this user
       const response = await fetch(
-        'http://10.203.3.62/system/get_reservations.php', // Same PHP file, different method
+        'http://192.168.1.34/system/get_reservations.php', // Same PHP file, different method
         {
           method: 'POST',
           headers: {

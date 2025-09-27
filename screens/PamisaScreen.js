@@ -83,7 +83,7 @@ const PamisaScreen = ({ navigation }) => {
         };
 
         try {
-            const serverUrl = "http://10.203.3.62/system/pamisa_submit.php";
+            const serverUrl = "http://192.168.1.34/system/pamisa_submit.php";
 
             console.log("Submitting Pamisa request:", formData);
 
