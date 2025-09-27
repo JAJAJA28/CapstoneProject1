@@ -148,7 +148,7 @@ const PamisaSaPatayScreen = () => {
       Alert.alert("Incomplete Form", "Pakisigurado na lahat ng impormasyon ay napunan bago mag-submit.");
     } else {
       try {
-        const serverUrl = "http://10.203.3.62/system/funeral_submit.php";
+        const serverUrl = "http://192.168.1.34/system/funeral_submit.php";
 
         console.log("Submitting funeral data:", formData);
 

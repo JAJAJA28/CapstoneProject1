@@ -42,14 +42,14 @@ export default function FormsMenuScreen({ navigation }) {
   }, []);
 
   const forms = [
-    { name: "Baptismal Form", url: "http://10.203.3.62/system/forms/baptismal%20form.docx", icon: "water", category: "Sacraments" },
-    { name: "Confirmation Form", url: "http://10.203.3.62/system/forms/CONFIRMATION%20form.docx", icon: "checkmark-done-circle", category: "Sacraments" },
-    { name: "Pamisa Form", url: "http://10.203.3.62/system/forms/PAMISA-new.docx", icon: "flower", category: "Services" },
-    { name: "Wedding Form", url: "http://10.203.3.62/system/forms/WeddingForm.pdf", icon: "heart", category: "Sacraments" },
-    { name: "Sick Call Form", url: "http://10.203.3.62/system/forms/NEW%20SICK%20CALL%20FORM.doc", icon: "medkit", category: "Services" },
-    { name: "Funeral Form", url: "http://10.203.3.62/system/forms/Funeral%20Form.doc", icon: "cloudy-night", category: "Services" },
-    { name: "Blessing Form", url: "http://10.203.3.62/system/forms/BLESSING.doc", icon: "sparkles", category: "Services" },
-    { name: "First Communion Form", url: "http://10.203.3.62/system/forms/First%20Communion%20form.docx", icon: "wine", category: "Sacraments" },
+    { name: "Baptismal Form", url: "http://192.168.1.34/system/forms/baptismal%20form.docx", icon: "water", category: "Sacraments" },
+    { name: "Confirmation Form", url: "http://192.168.1.34/system/forms/CONFIRMATION%20form.docx", icon: "checkmark-done-circle", category: "Sacraments" },
+    { name: "Pamisa Form", url: "http://192.168.1.34/system/forms/PAMISA-new.docx", icon: "flower", category: "Services" },
+    { name: "Wedding Form", url: "http://192.168.1.34/system/forms/WeddingForm.pdf", icon: "heart", category: "Sacraments" },
+    { name: "Sick Call Form", url: "http://192.168.1.34/system/forms/NEW%20SICK%20CALL%20FORM.doc", icon: "medkit", category: "Services" },
+    { name: "Funeral Form", url: "http://192.168.1.34/system/forms/Funeral%20Form.doc", icon: "cloudy-night", category: "Services" },
+    { name: "Blessing Form", url: "http://192.168.1.34/system/forms/BLESSING.doc", icon: "sparkles", category: "Services" },
+    { name: "First Communion Form", url: "http://192.168.1.34/system/forms/First%20Communion%20form.docx", icon: "wine", category: "Sacraments" },
   ];
 
   const categories = ["All", "Sacraments", "Services"];

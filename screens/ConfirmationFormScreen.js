@@ -78,7 +78,7 @@ const ConfirmationForm = () => {
         closePreviewModal();
 
         try {
-            const serverUrl = "http://10.203.3.62/system/confirmation_submit.php";
+            const serverUrl = "http://192.168.1.34/system/confirmation_submit.php";
 
             console.log("Submitting confirmation data:", formData);
 

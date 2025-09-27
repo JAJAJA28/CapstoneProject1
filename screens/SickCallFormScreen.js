@@ -80,7 +80,7 @@ const SickCallFormScreen = ({ navigation }) => {
 
    const handleSubmit = async () => {
   try {
-    const serverUrl = "http://10.203.3.62/system/sickcall_submit.php";
+    const serverUrl = "http://192.168.1.34/system/sickcall_submit.php";
 
     const payload = {
       ...formData,

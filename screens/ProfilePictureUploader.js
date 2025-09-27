@@ -66,7 +66,7 @@ const pickImage = async () => {
     formData.append('email', userEmail);
 
     try {
-      const res = await fetch('http://10.203.3.62/system/upload_profile_picture.php', {
+      const res = await fetch('http://192.168.1.34/system/upload_profile_picture.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'multipart/form-data',

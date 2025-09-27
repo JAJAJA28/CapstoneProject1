@@ -90,7 +90,7 @@ const WeddingFormScreen = ({ navigation }) => {
     closePreviewModal();
 
     try {
-        const serverUrl = "http://10.203.3.62/system/wedding_submit.php";
+        const serverUrl = "http://192.168.1.34/system/wedding_submit.php";
 
         // Map email_norm to email for wedding_submit.php
         const submissionData = {
