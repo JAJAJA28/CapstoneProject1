@@ -12,13 +12,12 @@ import {
   SafeAreaView,
   Alert,
   ActivityIndicator,
-  Platform,
-  Switch
+  Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialIcons, Feather, Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { MaterialIcons, Feather, Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../AuthContext';
-import { StatusBar } from 'react-native';0
+import { StatusBar } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -29,18 +28,7 @@ const ProfileScreen = ({ navigation }) => {
   const profileScaleAnim = useRef(new Animated.Value(0.9)).current;
   const [isLoading, setIsLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [activeTab, setActiveTab] = useState('profile');
-  const [darkMode, setDarkMode] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [securityAlerts, setSecurityAlerts] = useState(true);
 
-  // Effect to update status bar style based on dark mode
-  useEffect(() => {
-    StatusBar.setBarStyle(darkMode ? 'light-content' : 'dark-content');
-  }, [darkMode]);
-
-  // Rest of your existing useEffect
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -194,279 +182,10 @@ const ProfileScreen = ({ navigation }) => {
     );
   };
 
-  // Function to handle notification settings
-  const handleNotificationSettings = () => {
-    Alert.alert(
-      "Notification Settings",
-      "Customize how you receive notifications",
-      [
-        {
-          text: `Push Notifications: ${notificationsEnabled ? 'On' : 'Off'}`,
-          onPress: () => setNotificationsEnabled(!notificationsEnabled)
-        },
-        {
-          text: `Email Notifications: ${emailNotifications ? 'On' : 'Off'}`,
-          onPress: () => setEmailNotifications(!emailNotifications)
-        },
-        {
-          text: `Security Alerts: ${securityAlerts ? 'On' : 'Off'}`,
-          onPress: () => setSecurityAlerts(!securityAlerts)
-        },
-        {
-          text: "Done",
-          style: "cancel"
-        }
-      ]
-    );
-  };
-
-  // Function to handle privacy & security settings
-  const handlePrivacySecurity = () => {
-    Alert.alert(
-      "Privacy & Security",
-      "Manage your account security and privacy settings",
-      [
-        {
-          text: "Change Password",
-          onPress: () => navigation.navigate("ChangePassword")
-        },
-        {
-          text: "Two-Factor Authentication",
-          onPress: () => navigation.navigate("TwoFactorAuth")
-        },
-        {
-          text: "Privacy Policy",
-          onPress: () => navigation.navigate("PrivacyPolicy")
-        },
-        {
-          text: "Cancel",
-          style: "cancel"
-        }
-      ]
-    );
-  };
-
-  // Function to handle help & support
-  const handleHelpSupport = () => {
-    Alert.alert(
-      "Help & Support",
-      "How can we help you?",
-      [
-        {
-          text: "FAQs",
-          onPress: () => navigation.navigate("FAQs")
-        },
-        {
-          text: "Contact Support",
-          onPress: () => navigation.navigate("ContactSupport")
-        },
-        {
-          text: "App Feedback",
-          onPress: () => navigation.navigate("AppFeedback")
-        },
-        {
-          text: "Cancel",
-          style: "cancel"
-        }
-      ]
-    );
-  };
-
-  // Toggle dark mode
-  const toggleDarkMode = () => {
-    setDarkMode(previousState => !previousState);
-  };
-
-  const renderProfileSection = () => (
-    <>
-      <Animated.View style={[styles.profileCard, { 
-        transform: [{ translateY: cardSlideAnim }, { scale: profileScaleAnim }],
-        backgroundColor: darkMode ? '#2d3748' : '#fff'
-      }]}>
-        <View style={styles.profileImageContainer}>
-          <TouchableOpacity onPress={showImagePickerOptions} disabled={isLoading}>
-            <Animated.View style={[styles.profileImageWrapper, { transform: [{ scale: profileScaleAnim }] }]}>
-              <Image
-                source={
-                  selectedImage
-                    ? { uri: selectedImage.uri }
-                    : loggedInUser?.profilePicture
-                      ? { uri: `http://192.168.1.34/system/uploads/${loggedInUser.profilePicture}?t=${new Date().getTime()}` }
-                      : require('../assets/AGNUS3.png')
-                }
-                style={styles.profileImage}
-              />
-              <View style={styles.cameraIconContainer}>
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Ionicons name="camera" size={20} color="#fff" />
-                )}
-              </View>
-            </Animated.View>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.profileInfo}>
-          <Text style={[styles.name, { color: darkMode ? '#fff' : '#2d3748' }]}>{loggedInUser?.name || 'No name provided'}</Text>
-          <View style={styles.roleBadge}>
-            <Ionicons name="ribbon-outline" size={14} color="#fff" />
-            <Text style={styles.role}>Parishioner</Text>
-          </View>
-        </View>
-
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: darkMode ? '#fff' : '#2d3748' }]}>12</Text>
-            <Text style={[styles.statLabel, { color: darkMode ? '#a0aec0' : '#718096' }]}>Events</Text>
-          </View>
-          <View style={[styles.statDivider, { backgroundColor: darkMode ? '#4a5568' : '#e2e8f0' }]} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: darkMode ? '#fff' : '#2d3748' }]}>5</Text>
-            <Text style={[styles.statLabel, { color: darkMode ? '#a0aec0' : '#718096' }]}>Services</Text>
-          </View>
-          <View style={[styles.statDivider, { backgroundColor: darkMode ? '#4a5568' : '#e2e8f0' }]} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: darkMode ? '#fff' : '#2d3748' }]}>2</Text>
-            <Text style={[styles.statLabel, { color: darkMode ? '#a0aec0' : '#718096' }]}>Years</Text>
-          </View>
-        </View>
-      </Animated.View>
-
-      <Animated.View style={[styles.detailsCard, { 
-        transform: [{ translateY: cardSlideAnim }],
-        backgroundColor: darkMode ? '#2d3748' : '#fff'
-      }]}>
-        <View style={styles.sectionHeader}>
-          <Ionicons name="person-circle-outline" size={24} color="#6c5ce7" />
-          <Text style={[styles.sectionTitle, { color: darkMode ? '#fff' : '#2d3748' }]}>Account Details</Text>
-        </View>
-
-        <View style={styles.detailsList}>
-          <View style={styles.detailItem}>
-            <View style={[styles.iconContainer, { backgroundColor: darkMode ? '#4a5568' : '#f0f7ff' }]}>
-              <Feather name="mail" size={18} color="#6c5ce7" />
-            </View>
-            <View style={styles.detailContent}>
-              <Text style={[styles.detailLabel, { color: darkMode ? '#a0aec0' : '#718096' }]}>Email</Text>
-              <Text style={[styles.detailText, { color: darkMode ? '#fff' : '#2d3748' }]} numberOfLines={1}>{loggedInUser?.email || 'No email provided'}</Text>
-            </View>
-          </View>
-
-          <View style={styles.detailItem}>
-            <View style={[styles.iconContainer, { backgroundColor: darkMode ? '#4a5568' : '#f0f7ff' }]}>
-              <Feather name="phone" size={18} color="#6c5ce7" />
-            </View>
-            <View style={styles.detailContent}>
-              <Text style={[styles.detailLabel, { color: darkMode ? '#a0aec0' : '#718096' }]}>Phone</Text>
-              <Text style={[styles.detailText, { color: darkMode ? '#fff' : '#2d3748' }]}>{loggedInUser?.contactNumber || 'No contact number provided'}</Text>
-            </View>
-          </View>
-
-          <View style={styles.detailItem}>
-            <View style={[styles.iconContainer, { backgroundColor: darkMode ? '#4a5568' : '#f0f7ff' }]}>
-              <Feather name="map-pin" size={18} color="#6c5ce7" />
-            </View>
-            <View style={styles.detailContent}>
-              <Text style={[styles.detailLabel, { color: darkMode ? '#a0aec0' : '#718096' }]}>Address</Text>
-              <Text style={[styles.detailText, { color: darkMode ? '#fff' : '#2d3748' }]}>{loggedInUser?.completeAddress || 'No address provided'}</Text>
-            </View>
-          </View>
-        </View>
-      </Animated.View>
-
-      <Animated.View style={[styles.reservationCard, { 
-        transform: [{ translateY: cardSlideAnim }],
-        backgroundColor: darkMode ? '#2d3748' : '#fff'
-      }]}>
-        <TouchableOpacity
-          style={styles.reservationButton}
-          onPress={() => {
-            if (loggedInUser && loggedInUser.email) {
-              navigation.navigate("MyReservations", { userEmail: loggedInUser.email });
-            } else {
-              Alert.alert("Error", "No logged in user found.");
-            }
-          }}
-          activeOpacity={0.7}
-        >
-          <View style={styles.reservationButtonContent}>
-            <Ionicons name="calendar" size={22} color="#fff" />
-            <Text style={styles.reservationText}>View My Reservations</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#fff" />
-        </TouchableOpacity>
-      </Animated.View>
-    </>
-  );
-
-  const renderSettingsSection = () => (
-    <Animated.View style={[styles.settingsCard, { 
-      transform: [{ translateY: cardSlideAnim }],
-      backgroundColor: darkMode ? '#2d3748' : '#fff'
-    }]}>
-      <Text style={[styles.sectionTitle, { color: darkMode ? '#fff' : '#2d3748' }]}>Preferences</Text>
-      
-      <TouchableOpacity style={styles.settingsItem} onPress={handleNotificationSettings}>
-        <View style={[styles.settingsIcon, { backgroundColor: darkMode ? '#4a5568' : '#f0f7ff' }]}>
-          <Ionicons name="notifications-outline" size={22} color="#6c5ce7" />
-        </View>
-        <View style={styles.settingsContent}>
-          <Text style={[styles.settingsLabel, { color: darkMode ? '#fff' : '#2d3748' }]}>Notifications</Text>
-          <Text style={[styles.settingsDescription, { color: darkMode ? '#a0aec0' : '#718096' }]}>Manage your notification preferences</Text>
-        </View>
-        <View style={styles.notificationStatus}>
-          <Text style={[styles.notificationStatusText, { color: darkMode ? '#a0aec0' : '#718096' }]}>
-            {notificationsEnabled ? 'On' : 'Off'}
-          </Text>
-          <Ionicons name="chevron-forward" size={20} color="#a0aec0" />
-        </View>
-      </TouchableOpacity>
-      
-      <TouchableOpacity style={styles.settingsItem} onPress={handlePrivacySecurity}>
-        <View style={[styles.settingsIcon, { backgroundColor: darkMode ? '#4a5568' : '#f0f7ff' }]}>
-          <Ionicons name="lock-closed-outline" size={22} color="#6c5ce7" />
-        </View>
-        <View style={styles.settingsContent}>
-          <Text style={[styles.settingsLabel, { color: darkMode ? '#fff' : '#2d3748' }]}>Privacy & Security</Text>
-          <Text style={[styles.settingsDescription, { color: darkMode ? '#a0aec0' : '#718096' }]}>Control your privacy settings</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color="#a0aec0" />
-      </TouchableOpacity>
-      
-      <TouchableOpacity style={styles.settingsItem} onPress={handleHelpSupport}>
-        <View style={[styles.settingsIcon, { backgroundColor: darkMode ? '#4a5568' : '#f0f7ff' }]}>
-          <Ionicons name="help-buoy-outline" size={22} color="#6c5ce7" />
-        </View>
-        <View style={styles.settingsContent}>
-          <Text style={[styles.settingsLabel, { color: darkMode ? '#fff' : '#2d3748' }]}>Help & Support</Text>
-          <Text style={[styles.settingsDescription, { color: darkMode ? '#a0aec0' : '#718096' }]}>Get help and contact support</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color="#a0aec0" />
-      </TouchableOpacity>
-      
-      <View style={styles.settingsItem}>
-        <View style={[styles.settingsIcon, { backgroundColor: darkMode ? '#4a5568' : '#f0f7ff' }]}>
-          <Ionicons name="moon-outline" size={22} color="#6c5ce7" />
-        </View>
-        <View style={styles.settingsContent}>
-          <Text style={[styles.settingsLabel, { color: darkMode ? '#fff' : '#2d3748' }]}>Dark Mode</Text>
-          <Text style={[styles.settingsDescription, { color: darkMode ? '#a0aec0' : '#718096' }]}>Toggle dark theme</Text>
-        </View>
-        <Switch
-          value={darkMode}
-          onValueChange={toggleDarkMode}
-          thumbColor={darkMode ? '#6c5ce7' : '#f4f3f4'}
-          trackColor={{ false: '#767577', true: '#81b0ff' }}
-        />
-      </View>
-    </Animated.View>
-  );
-
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: darkMode ? '#121212' : "#f8f9fa" }]}>
+    <SafeAreaView style={styles.safeArea}>
       <LinearGradient
-        colors={darkMode ? ['rgba(30, 30, 30, 0.8)', 'rgba(50, 50, 50, 0.8)'] : ['rgba(255, 226, 89, 0.8)', 'rgba(255, 167, 81, 0.8)']}
+        colors={['rgba(255, 226, 89, 0.8)', 'rgba(255, 167, 81, 0.8)']}
         style={styles.gradientBackground}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -475,41 +194,11 @@ const ProfileScreen = ({ navigation }) => {
       <StatusBar
         translucent
         backgroundColor="transparent"
-        barStyle={darkMode ? "light-content" : "dark-content"}
+        barStyle="dark-content"
       />
 
       <View style={styles.header}>
-        <Text style={[styles.title, { color: darkMode ? '#fff' : "black" }]}>My Profile</Text>
-        <TouchableOpacity 
-          style={[styles.settingsButton, { backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.2)' }]}
-          onPress={() => setActiveTab(activeTab === 'profile' ? 'settings' : 'profile')}
-        >
-          <Ionicons 
-            name={activeTab === 'profile' ? "settings-outline" : "person-outline"} 
-            size={24} 
-            color="#fff" 
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Tab Selector */}
-      <View style={[styles.tabContainer, { backgroundColor: darkMode ? 'rgba(45, 55, 72, 0.2)' : 'rgba(255, 255, 255, 0.2)' }]}>
-        <TouchableOpacity 
-          style={[styles.tabButton, activeTab === 'profile' && [styles.activeTab, { backgroundColor: darkMode ? '#2d3748' : 'white' }]]}
-          onPress={() => setActiveTab('profile')}
-        >
-          <Text style={[styles.tabText, activeTab === 'profile' && [styles.activeTabText, { color: darkMode ? '#fff' : '#4c669f' }]]}>
-            Profile
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.tabButton, activeTab === 'settings' && [styles.activeTab, { backgroundColor: darkMode ? '#2d3748' : 'white' }]]}
-          onPress={() => setActiveTab('settings')}
-        >
-          <Text style={[styles.tabText, activeTab === 'settings' && [styles.activeTabText, { color: darkMode ? '#fff' : '#4c669f' }]]}>
-            Settings
-          </Text>
-        </TouchableOpacity>
+        <Text style={styles.title}>My Profile</Text>
       </View>
 
       <ScrollView 
@@ -517,11 +206,111 @@ const ProfileScreen = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-          {activeTab === 'profile' ? renderProfileSection() : renderSettingsSection()}
+          {/* Profile Card */}
+          <Animated.View style={[styles.profileCard, { 
+            transform: [{ translateY: cardSlideAnim }, { scale: profileScaleAnim }]
+          }]}>
+            <View style={styles.profileImageContainer}>
+              <TouchableOpacity onPress={showImagePickerOptions} disabled={isLoading}>
+                <Animated.View style={[styles.profileImageWrapper, { transform: [{ scale: profileScaleAnim }] }]}>
+                  <Image
+                    source={
+                      selectedImage
+                        ? { uri: selectedImage.uri }
+                        : loggedInUser?.profilePicture
+                          ? { uri: `http://192.168.1.34/system/uploads/${loggedInUser.profilePicture}?t=${new Date().getTime()}` }
+                          : require('../assets/AGNUS3.png')
+                    }
+                    style={styles.profileImage}
+                  />
+                  <View style={styles.cameraIconContainer}>
+                    {isLoading ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Ionicons name="camera" size={20} color="#fff" />
+                    )}
+                  </View>
+                </Animated.View>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.profileInfo}>
+              <Text style={styles.name}>{loggedInUser?.name || 'No name provided'}</Text>
+              <View style={styles.roleBadge}>
+                <Ionicons name="ribbon-outline" size={14} color="#fff" />
+                <Text style={styles.role}>Parishioner</Text>
+              </View>
+            </View>
+          </Animated.View>
+
+          {/* Account Details Card */}
+          <Animated.View style={[styles.detailsCard, { 
+            transform: [{ translateY: cardSlideAnim }]
+          }]}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="person-circle-outline" size={24} color="#6c5ce7" />
+              <Text style={styles.sectionTitle}>Account Details</Text>
+            </View>
+
+            <View style={styles.detailsList}>
+              <View style={styles.detailItem}>
+                <View style={styles.iconContainer}>
+                  <Feather name="mail" size={18} color="#6c5ce7" />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Email</Text>
+                  <Text style={styles.detailText} numberOfLines={1}>{loggedInUser?.email || 'No email provided'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.detailItem}>
+                <View style={styles.iconContainer}>
+                  <Feather name="phone" size={18} color="#6c5ce7" />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Phone</Text>
+                  <Text style={styles.detailText}>{loggedInUser?.contactNumber || 'No contact number provided'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.detailItem}>
+                <View style={styles.iconContainer}>
+                  <Feather name="map-pin" size={18} color="#6c5ce7" />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Address</Text>
+                  <Text style={styles.detailText}>{loggedInUser?.completeAddress || 'No address provided'}</Text>
+                </View>
+              </View>
+            </View>
+          </Animated.View>
+
+          {/* Reservations Card */}
+          <Animated.View style={[styles.reservationCard, { 
+            transform: [{ translateY: cardSlideAnim }]
+          }]}>
+            <TouchableOpacity
+              style={styles.reservationButton}
+              onPress={() => {
+                if (loggedInUser && loggedInUser.email) {
+                  navigation.navigate("MyReservations", { userEmail: loggedInUser.email });
+                } else {
+                  Alert.alert("Error", "No logged in user found.");
+                }
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.reservationButtonContent}>
+                <Ionicons name="calendar" size={22} color="#fff" />
+                <Text style={styles.reservationText}>View My Reservations</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#fff" />
+            </TouchableOpacity>
+          </Animated.View>
         </Animated.View>
       </ScrollView>
 
-      <View style={[styles.bottomActions, { backgroundColor: darkMode ? '#1a202c' : '#fff' }]}>
+      <View style={styles.bottomActions}>
         <TouchableOpacity
           style={[styles.logoutButton, isLoading && styles.logoutButtonDisabled]}
           onPress={handleLogout}
@@ -585,41 +374,6 @@ const styles = StyleSheet.create({
     color: "black",
     letterSpacing: 0.5,
   },
-  settingsButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    marginHorizontal: 20,
-    marginBottom: 15,
-    borderRadius: 12,
-    padding: 4,
-  },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  activeTab: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  tabText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-  activeTabText: {
-    color: '#4c669f',
-  },
   scrollContainer: {
     flexGrow: 1,
     paddingBottom: 100,
@@ -634,6 +388,7 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: "center",
     marginBottom: 20,
+    backgroundColor: '#fff',
     shadowColor: "#4a6fa5",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.1,
@@ -681,6 +436,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 8,
     textAlign: "center",
+    color: '#2d3748'
   },
   roleBadge: {
     flexDirection: 'row',
@@ -696,33 +452,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 4,
   },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    paddingTop: 16,
-    borderTopWidth: 1,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  statLabel: {
-    fontSize: 13,
-    marginTop: 4,
-    fontWeight: '500',
-  },
-  statDivider: {
-    width: 1,
-    height: 35,
-  },
   detailsCard: {
     borderRadius: 20,
     padding: 18,
     marginBottom: 20,
+    backgroundColor: '#fff',
     shadowColor: "#4a6fa5",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -735,11 +469,13 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     borderBottomWidth: 1,
     paddingBottom: 14,
+    borderBottomColor: '#e2e8f0'
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
     marginLeft: 10,
+    color: '#2d3748'
   },
   detailsList: {
     paddingHorizontal: 4,
@@ -756,6 +492,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
+    backgroundColor: '#f0f7ff'
   },
   detailContent: {
     flex: 1,
@@ -764,15 +501,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 3,
     fontWeight: '500',
+    color: '#718096'
   },
   detailText: {
     fontSize: 15,
     fontWeight: '600',
+    color: '#2d3748'
   },
   reservationCard: {
     borderRadius: 20,
     padding: 14,
     marginBottom: 20,
+    backgroundColor: '#fff',
     shadowColor: "#4a6fa5",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -797,41 +537,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     marginLeft: 10,
   },
-  settingsCard: {
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 20,
-    shadowColor: "#4a6fa5",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  settingsItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-  },
-  settingsIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-  },
-  settingsContent: {
-    flex: 1,
-  },
-  settingsLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 3,
-  },
-  settingsDescription: {
-    fontSize: 13,
-  },
   bottomActions: {
     position: "absolute",
     bottom: 0,
@@ -840,6 +545,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: Platform.OS === 'ios' ? 25 : 20,
     paddingTop: 14,
+    backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     shadowColor: "#000",
@@ -864,13 +570,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     marginLeft: 8,
-  },
-  notificationStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  notificationStatusText: {
-    fontSize: 14,
-    marginRight: 5,
   },
 });

@@ -55,6 +55,10 @@ const HomeScreen = () => {
     require("../assets/MASS14.jpg"),
     require("../assets/MASS15.jpg"),
     require("../assets/MASS16.jpg"),
+    require("../assets/SR1.jpg"),
+    require("../assets/SR2.jpg"),
+    require("../assets/SR3.jpg"),
+    require("../assets/SR4.jpg"),
   ];
 
   useEffect(() => {
@@ -163,41 +167,42 @@ Help us follow Your path with courage and trust, and inspire us to act with love
 
   // Mass schedule data
   const massSchedules = [
-    { day: 'Monday - Friday', times: ['6:00 AM', '5:30 PM'] },
-    { day: 'Saturday', times: ['6:00 AM', '6:00 PM (Anticipated Mass)'] },
-    { day: 'Sunday', times: ['5:00 AM', '6:30 AM', '8:00 AM', '9:30 AM', '4:00 PM', '5:30 PM', '7:00 PM'] },
+    { day: 'Monday - Friday', times: ['6:00 AM', '6:00 PM (ElShaddai Thanksgiving Mass Every 3rd Week of the Month)' ] },
+    { day: 'Saturday', times: ['6:00 AM', '6:00 PM (Anticipated Mass in Chapel)'] },
+    { day: 'Sunday', times: ['6:00 AM', '8:00 AM', '5:30 pM', '7:00 PM'] },
   ];
 
-  // Daily readings data
-  const dailyReadings = {
-    date: 'November 15, 2023',
-    firstReading: {
-      title: 'Wisdom 7:22b–8:1',
-      text: 'For wisdom, the fashioner of all things, taught me...'
-    },
-    psalm: {
-      title: 'Psalm 119:89, 90, 91, 130, 135, 175',
-      text: 'Your word is for ever, O Lord.'
-    },
-    secondReading: {
-      title: '1 Thessalonians 1:5c-10',
-      text: 'You turned to God from idols, to serve him who is living and true...'
-    },
-    gospel: {
-      title: 'Matthew 25:14-30',
-      text: 'Well done, good and faithful servant...'
-    }
-  };
+ // Daily readings data about Tobit and St. Raphael
+const dailyReadings = {
+  date: 'October 2, 2025',
+  firstReading: {
+    title: 'Tobit 12:6-15',
+    text: 'Then Raphael called the two of them aside privately and said to them: “Bless God and acknowledge him in the presence of all the living... I am Raphael, one of the seven angels who stand ready and enter before the glory of the Lord.”'
+  },
+  psalm: {
+    title: 'Tobit 13:1-2, 6-8',
+    text: 'Blessed be God who lives forever, because his kingdom lasts throughout all ages... Acknowledge him before the nations, you children of Israel; for he has scattered you among them.'
+  },
+  secondReading: {
+    title: 'Tobit 3:16-17',
+    text: 'So the prayer of both of them was heard in the presence of the glory of the great God. Raphael was sent to heal both of them: to remove the white films from Tobit’s eyes, and to give Sarah to Tobias in marriage.'
+  },
+  gospel: {
+    title: 'John 5:1-4 (parallel to angel bringing healing)',
+    text: 'An angel of the Lord would come down at certain seasons into the pool and stir up the water; the one who stepped in was healed of whatever disease he had.'
+  }
+};
+
 
   // About church data
   const aboutChurch = {
-    history: 'St. Raphael the Archangel Parish was established in 1985 to serve the growing Catholic community in Montalban, Rizal. The parish is dedicated to serving the spiritual needs of the community through various ministries and programs.',
+    history: 'On October 23, 2021, the parish church was solemnly dedicated to God by Bishop Francisco M. de Leon, D.D., marking a historic milestone in its journey of faith. The parish continues to serve as a spiritual refuge for the communities of San Rafael, San Isidro, Mascap, and Puray, and remains a beacon of hope and devotion for countless faithful from near and far',
     mission: 'Our mission is to proclaim the Gospel of Jesus Christ, celebrate the sacraments, and serve the community through works of charity and justice.',
     vision: 'To be a vibrant, welcoming, and missionary community of disciples of Jesus Christ.',
     contact: {
-      address: 'San Rafael, Rodriguez, Rizal, 1860',
-      phone: '(123) 456-7890',
-      email: 'st.raphael.parish@example.com'
+      address: 'P.Rodriguez St.,San Rafael, Rodriguez, Philippines, 1860',
+      phone: '284750837',
+      email: 'contact@srapmontalban.org'
     }
   };
 
@@ -244,15 +249,7 @@ Help us follow Your path with courage and trust, and inspire us to act with love
               </Text>
             </View>
           </View>
-          <TouchableOpacity 
-            style={[styles.menuButton, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
-            onPress={() => {}}
-          >
-            <Ionicons name="menu" size={24} color="#FFF" />
-          </TouchableOpacity>
         </View>
-
-     
       </Animated.View>
 
     
@@ -434,29 +431,26 @@ Help us follow Your path with courage and trust, and inspire us to act with love
           ]}
         >
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: textColor }]}>Upcoming Events</Text>
-            <TouchableOpacity>
-              <Text style={[styles.seeAllText, { color: primaryColor }]}>See All</Text>
-            </TouchableOpacity>
+            <Text style={[styles.sectionTitle, { color: textColor }]}>Parish Important Events</Text>
           </View>
           <View style={styles.eventItem}>
             <View style={[styles.eventDate, { backgroundColor: isDarkMode ? 'rgba(124, 58, 237, 0.2)' : 'rgba(108, 92, 231, 0.1)' }]}>
-              <Text style={[styles.eventDay, { color: primaryColor }]}>20</Text>
-              <Text style={[styles.eventMonth, { color: primaryColor }]}>NOV</Text>
+              <Text style={[styles.eventDay, { color: primaryColor }]}>29</Text>
+              <Text style={[styles.eventMonth, { color: primaryColor }]}>SEP</Text>
             </View>
             <View style={styles.eventDetails}>
-              <Text style={[styles.eventTitle, { color: textColor }]}>Parish Feast Day Celebration</Text>
-              <Text style={[styles.eventTime, { color: secondaryTextColor }]}>8:00 AM - 8:00 PM</Text>
+              <Text style={[styles.eventTitle, { color: textColor }]}>Patron Feast Day Celebration</Text>
+              <Text style={[styles.eventTime, { color: secondaryTextColor }]}>Dakilang Kapistahan ng mga Arkanghel</Text>
             </View>
           </View>
           <View style={styles.eventItem}>
             <View style={[styles.eventDate, { backgroundColor: isDarkMode ? 'rgba(124, 58, 237, 0.2)' : 'rgba(108, 92, 231, 0.1)' }]}>
-              <Text style={[styles.eventDay, { color: primaryColor }]}>24</Text>
-              <Text style={[styles.eventMonth, { color: primaryColor }]}>DEC</Text>
+              <Text style={[styles.eventDay, { color: primaryColor }]}>23</Text>
+              <Text style={[styles.eventMonth, { color: primaryColor }]}>OCT</Text>
             </View>
             <View style={styles.eventDetails}>
-              <Text style={[styles.eventTitle, { color: textColor }]}>Christmas Eve Mass</Text>
-              <Text style={[styles.eventTime, { color: secondaryTextColor }]}>6:00 PM - 12:00 AM</Text>
+              <Text style={[styles.eventTitle, { color: textColor }]}>Parish Foundation Day</Text>
+              <Text style={[styles.eventTime, { color: secondaryTextColor }]}>Parish Established</Text>
             </View>
           </View>
         </Animated.View>
@@ -532,7 +526,7 @@ Help us follow Your path with courage and trust, and inspire us to act with love
           <View style={styles.modalOverlay}>
             <View style={[styles.modalContent, { backgroundColor: cardBackground, maxHeight: '80%' }]}>
               <ScrollView>
-                <Text style={[styles.modalTitle, { color: textColor }]}>Daily Readings</Text>
+                <Text style={[styles.modalTitle, { color: textColor }]}>Readings about Tobit</Text>
                 <View style={[styles.divider, { backgroundColor: isDarkMode ? '#333' : '#EEE' }]} />
                 <Text style={[styles.readingsDate, { color: secondaryTextColor }]}>{dailyReadings.date}</Text>
                 
