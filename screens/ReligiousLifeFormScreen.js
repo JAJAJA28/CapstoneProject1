@@ -137,7 +137,7 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
         closePreviewModal();
 
         try {
-            const serverUrl = "http://192.168.1.34/system/religious_life_submit.php";
+            const serverUrl = "http://192.168.1.18/system/religious_life_submit.php";
 
             console.log("Submitting religious life inquiry:", formData);
 

@@ -81,7 +81,7 @@ const { loggedInUser } = useAuth();  // makukuha mo na yung email dito
         closePreviewModal();
 
         try {
-            const serverUrl = "http://192.168.1.34/system/first_communion_submit.php";
+            const serverUrl = "http://192.168.1.18/system/first_communion_submit.php";
 
             console.log("Submitting first communion data:", formData);
 

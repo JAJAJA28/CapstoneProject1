@@ -65,7 +65,7 @@ export default function ForgotPasswordScreen({ navigation }) {
 
     setIsLoading(true);
     try {
-      let response = await fetch("http://192.168.1.34/system/reset_password.php", {
+      let response = await fetch("http://192.168.1.18/system/reset_password.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, oldPassword, newPassword }),

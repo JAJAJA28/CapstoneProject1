@@ -61,7 +61,7 @@ const SignupScreen = ({ navigation }) => {
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://192.168.1.34/system/signup.php", {
+      const response = await fetch("http://192.168.1.18/system/signup.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

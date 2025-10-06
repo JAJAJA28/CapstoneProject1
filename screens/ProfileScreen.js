@@ -140,7 +140,7 @@ const ProfileScreen = ({ navigation }) => {
 
     try {
       setIsLoading(true);
-      const response = await fetch("http://192.168.1.34/system/upload_profile_picture.php", {
+      const response = await fetch("http://192.168.1.18/system/upload_profile_picture.php", {
         method: "POST",
         body: formData,
       });
@@ -218,7 +218,7 @@ const ProfileScreen = ({ navigation }) => {
                       selectedImage
                         ? { uri: selectedImage.uri }
                         : loggedInUser?.profilePicture
-                          ? { uri: `http://192.168.1.34/system/uploads/${loggedInUser.profilePicture}?t=${new Date().getTime()}` }
+                          ? { uri: `http://192.168.1.18/system/uploads/${loggedInUser.profilePicture}?t=${new Date().getTime()}` }
                           : require('../assets/AGNUS3.png')
                     }
                     style={styles.profileImage}
@@ -335,7 +335,7 @@ export default ProfileScreen;
 const fetchUserData = async (email) => {
   try {
     const response = await fetch(
-      `http://192.168.1.34/system/get_user_data.php?email=${encodeURIComponent(email)}`
+      `http://192.168.1.18/system/get_user_data.php?email=${encodeURIComponent(email)}`
     );
     const data = await response.json();
     if (data.status === 'success') return data.user;

@@ -56,7 +56,7 @@ const LoginScreen = ({ navigation }) => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://192.168.1.34/system/login.php",
+        "http://192.168.1.18/system/login.php",
         { email, password }
       );
 

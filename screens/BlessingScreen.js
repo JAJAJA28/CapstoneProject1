@@ -113,7 +113,7 @@ const BlessingScreen = ({ navigation }) => {
         };
 
         try {
-            const serverUrl = "http://192.168.1.34/system/blessing_submit.php";
+            const serverUrl = "http://192.168.1.18/system/blessing_submit.php";
 
             const response = await fetch(serverUrl, {
                 method: "POST",

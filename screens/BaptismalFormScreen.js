@@ -78,7 +78,7 @@ const BaptismalFormScreen = () => {
     }
 
     try {
-      const serverUrl = "http://192.168.1.34/system/baptismal_submit.php";
+      const serverUrl = "http://192.168.1.18/system/baptismal_submit.php";
       const response = await fetch(serverUrl, {
         method: "POST",
         headers: {
