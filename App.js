@@ -30,7 +30,7 @@ import PamisaScreen from "./screens/PamisaScreen";
 import MyReservationsScreen from "./screens/MyReservationsScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import FormsMenuScreen from "./screens/FormsMenuScreen";
-
+import StartUpScreen from "./screens/StartUpScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -44,8 +44,7 @@ const MainTabs = () => {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-         backgroundColor: '#FDF6E3',
-
+          backgroundColor: '#FDF6E3',
           height: Platform.OS === "android" ? 90 : 70,
           paddingBottom: Platform.OS === "android" ? 10 : 0,
         },
@@ -53,36 +52,35 @@ const MainTabs = () => {
         tabBarActiveTintColor: "#dc3545",
       }}
     >
-    <Tab.Screen
-  name="Home"
-  options={{
-    tabBarIcon: ({ color, size }) => (
-      <MaterialCommunityIcons name="home-outline" color={color} size={30} />
-    ),
-  }}
-  component={HomeScreen}
-/>
+      <Tab.Screen
+        name="Home"
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="home-outline" color={color} size={30} />
+          ),
+        }}
+        component={HomeScreen}
+      />
 
-<Tab.Screen
-  name="Dashboard"
-  options={{
-    tabBarIcon: ({ color, size }) => (
-      <MaterialCommunityIcons name="view-dashboard-outline" color={color} size={30} />
-    ),
-  }}
-  component={DashboardScreen}
-/>
+      <Tab.Screen
+        name="Dashboard"
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="view-dashboard-outline" color={color} size={30} />
+          ),
+        }}
+        component={DashboardScreen}
+      />
 
-<Tab.Screen
-  name="Profile"
-  options={{
-    tabBarIcon: ({ color, size }) => (
-      <MaterialCommunityIcons name="account-circle-outline" color={color} size={30} />
-    ),
-  }}
-  component={ProfileScreen}
-/>
-
+      <Tab.Screen
+        name="Profile"
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="account-circle-outline" color={color} size={30} />
+          ),
+        }}
+        component={ProfileScreen}
+      />
     </Tab.Navigator>
   );
 };
@@ -94,6 +92,7 @@ const AuthWrapper = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {loggedInUser ? (
+        // User is logged in - show main app
         <>
           <Stack.Screen name="MainTabs" component={MainTabs} />
           <Stack.Screen name="FormsMenu" component={FormsMenuScreen} />
@@ -114,11 +113,12 @@ const AuthWrapper = () => {
           <Stack.Screen name="MyReservations" component={MyReservationsScreen} />
         </>
       ) : (
+        // User is not logged in - show auth flow starting with StartupScreen
         <>
+          <Stack.Screen name="Startup" component={StartUpScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-
         </>
       )}
     </Stack.Navigator>
