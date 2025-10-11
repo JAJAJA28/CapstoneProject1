@@ -17,6 +17,7 @@ import {
     Easing
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const { width, height } = Dimensions.get('window');
 
@@ -33,6 +34,10 @@ const BlessingScreen = ({ navigation }) => {
     const [time, setTime] = useState('');
     const [place, setPlace] = useState('');
     const [minister, setMinister] = useState('');
+    
+    // Date and Time Picker states
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
     
     // Modal states
     const [showSummaryModal, setShowSummaryModal] = useState(false);
@@ -52,6 +57,40 @@ const BlessingScreen = ({ navigation }) => {
         { label: '🏬 Store', value: 'Store' },
         { label: '📌 Others', value: 'Others' },
     ];
+
+    // Date and Time handling functions
+    const formatDate = (selectedDate) => {
+        const day = selectedDate.getDate().toString().padStart(2, '0');
+        const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+        const year = selectedDate.getFullYear();
+        return `${month}/${day}/${year}`;
+    };
+
+    const formatTime = (selectedTime) => {
+        let hours = selectedTime.getHours();
+        let minutes = selectedTime.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        minutes = minutes.toString().padStart(2, '0');
+        
+        return `${hours}:${minutes} ${ampm}`;
+    };
+
+    const onDateChange = (event, selectedDate) => {
+        setShowDatePicker(false);
+        if (selectedDate) {
+            setDate(formatDate(selectedDate));
+        }
+    };
+
+    const onTimeChange = (event, selectedTime) => {
+        setShowTimePicker(false);
+        if (selectedTime) {
+            setTime(formatTime(selectedTime));
+        }
+    };
 
     const validateForm = () => {
         if (!name || !email || !address || !telNo || !civilStatus || !establishment || !date || !time || !place || !minister) {
@@ -207,6 +246,25 @@ const BlessingScreen = ({ navigation }) => {
                     contentContainerStyle={styles.scrollContainer}
                     showsVerticalScrollIndicator={false}
                 >
+                    {/* Date and Time Pickers */}
+                    {showDatePicker && (
+                        <DateTimePicker
+                            value={new Date()}
+                            mode="date"
+                            display="default"
+                            onChange={onDateChange}
+                        />
+                    )}
+
+                    {showTimePicker && (
+                        <DateTimePicker
+                            value={new Date()}
+                            mode="time"
+                            display="default"
+                            onChange={onTimeChange}
+                        />
+                    )}
+
                     <Text style={styles.title}>Blessing Request Form</Text>
                     
                     <View style={styles.formContainer}>
@@ -308,21 +366,27 @@ const BlessingScreen = ({ navigation }) => {
 
                         {/* DATE */}
                         <Text style={styles.label}>Date of Blessing</Text>
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="Enter date (e.g. MM/DD/YYYY)" 
-                            value={date} 
-                            onChangeText={setDate} 
-                        />
+                        <TouchableOpacity
+                            style={styles.dateInput}
+                            onPress={() => setShowDatePicker(true)}
+                        >
+                            <Text style={date ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                {date || "Select date (MM/DD/YYYY)"}
+                            </Text>
+                            <Ionicons name="calendar" size={20} color="#666" />
+                        </TouchableOpacity>
 
                         {/* TIME */}
                         <Text style={styles.label}>Time of Blessing</Text>
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="Enter time (e.g. 2:00 PM)" 
-                            value={time} 
-                            onChangeText={setTime} 
-                        />
+                        <TouchableOpacity
+                            style={styles.dateInput}
+                            onPress={() => setShowTimePicker(true)}
+                        >
+                            <Text style={time ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                {time || "Select time (HH:MM AM/PM)"}
+                            </Text>
+                            <Ionicons name="time" size={20} color="#666" />
+                        </TouchableOpacity>
 
                         {/* PLACE */}
                         <Text style={styles.label}>Place of Blessing</Text>
@@ -516,7 +580,7 @@ const styles = StyleSheet.create({
     },
     scrollContainer: {
         alignItems: 'center',
-        padding: 20,
+        padding: 60,
         paddingBottom: 40,
     },
     formContainer: {
@@ -545,6 +609,27 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         marginBottom: 20,
         fontSize: 16,
+    },
+    dateInput: {
+        width: '100%',
+        padding: 15,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 8,
+        backgroundColor: '#fff',
+        marginBottom: 20,
+        fontSize: 16,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    dateInputText: {
+        fontSize: 16,
+        color: '#000',
+    },
+    dateInputPlaceholder: {
+        fontSize: 16,
+        color: '#999',
     },
     optionContainer: {
         flexDirection: 'row',
@@ -613,6 +698,8 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
 });
+
+// ... (keep the existing previewStyles and demandStyles objects exactly as they are)
 
 const previewStyles = StyleSheet.create({
     modalContainer: {

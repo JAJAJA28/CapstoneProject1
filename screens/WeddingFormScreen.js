@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // Added useEffect import
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -18,6 +18,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from "../AuthContext";
+import DateTimePicker from '@react-native-community/datetimepicker';
+
 const { height, width } = Dimensions.get('window');
 
 // Remove loggedInUser from initialFormState since it's not available here
@@ -45,7 +47,7 @@ const initialFormState = {
     paymentDate: "",
     arNo: "",
     paymentAmount: "",
-    email_norm: "guest@example.com", // Default value only
+    email_norm: "guest@example.com",
 };
 
 const WeddingFormScreen = ({ navigation }) => {
@@ -54,6 +56,15 @@ const WeddingFormScreen = ({ navigation }) => {
     const [requirementsModalVisible, setRequirementsModalVisible] = useState(false);
     const [previewModalVisible, setPreviewModalVisible] = useState(false);
     const fadeAnim = useState(new Animated.Value(0))[0];
+
+    // Date picker states
+    const [showWeddingDatePicker, setShowWeddingDatePicker] = useState(false);
+    const [showParishSchedulePicker, setShowParishSchedulePicker] = useState(false);
+    const [showPriestInterviewPicker, setShowPriestInterviewPicker] = useState(false);
+    const [showSeminarPicker, setShowSeminarPicker] = useState(false);
+    const [showCounsellingPicker, setShowCounsellingPicker] = useState(false);
+    const [showConfessionPicker, setShowConfessionPicker] = useState(false);
+    const [showPaymentDatePicker, setShowPaymentDatePicker] = useState(false);
 
     // 🔄 Update email_norm when loggedInUser changes
     useEffect(() => {
@@ -69,6 +80,79 @@ const WeddingFormScreen = ({ navigation }) => {
             }));
         }
     }, [loggedInUser]);
+
+    // Date handling functions
+    const formatDate = (date) => {
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${month}/${day}/${year}`;
+    };
+
+    const formatDateTime = (date) => {
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        minutes = minutes.toString().padStart(2, '0');
+        
+        return `${month}/${day}/${year} ${hours}:${minutes} ${ampm}`;
+    };
+
+    // Date change handlers
+    const onWeddingDateChange = (event, selectedDate) => {
+        setShowWeddingDatePicker(false);
+        if (selectedDate) {
+            handleInputChange('weddingDate', formatDateTime(selectedDate));
+        }
+    };
+
+    const onParishScheduleChange = (event, selectedDate) => {
+        setShowParishSchedulePicker(false);
+        if (selectedDate) {
+            handleInputChange('parishSchedule', formatDateTime(selectedDate));
+        }
+    };
+
+    const onPriestInterviewChange = (event, selectedDate) => {
+        setShowPriestInterviewPicker(false);
+        if (selectedDate) {
+            handleInputChange('priestInterview', formatDateTime(selectedDate));
+        }
+    };
+
+    const onSeminarChange = (event, selectedDate) => {
+        setShowSeminarPicker(false);
+        if (selectedDate) {
+            handleInputChange('seminar', formatDateTime(selectedDate));
+        }
+    };
+
+    const onCounsellingChange = (event, selectedDate) => {
+        setShowCounsellingPicker(false);
+        if (selectedDate) {
+            handleInputChange('counselling', formatDateTime(selectedDate));
+        }
+    };
+
+    const onConfessionChange = (event, selectedDate) => {
+        setShowConfessionPicker(false);
+        if (selectedDate) {
+            handleInputChange('confession', formatDateTime(selectedDate));
+        }
+    };
+
+    const onPaymentDateChange = (event, selectedDate) => {
+        setShowPaymentDatePicker(false);
+        if (selectedDate) {
+            handleInputChange('paymentDate', formatDate(selectedDate));
+        }
+    };
 
     const handleInputChange = (field, value) => {
         setFormData((prevData) => ({
@@ -87,66 +171,66 @@ const WeddingFormScreen = ({ navigation }) => {
     };
 
     const handleConfirmSubmit = async () => {
-    closePreviewModal();
+        closePreviewModal();
 
-    try {
-        const serverUrl = "http://192.168.1.18/system/wedding_submit.php";
-
-        // Map email_norm to email for wedding_submit.php
-        const submissionData = {
-            ...formData,
-            email: formData.email_norm, // <-- REQUIRED field for PHP
-        };
-        delete submissionData.email_norm; // remove email_norm to avoid confusion
-
-        console.log("Submitting wedding data:", submissionData);
-
-        const response = await fetch(serverUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(submissionData),
-        });
-
-        const text = await response.text();
-        console.log("📦 Raw wedding submission response:", text);
-
-        if (!text) {
-            Alert.alert("Server Error", "Server returned an empty response for wedding form. This might indicate a PHP error.");
-            return;
-        }
-
-        let jsonResponse;
         try {
-            jsonResponse = JSON.parse(text);
-        } catch (parseError) {
-            console.error("❌ JSON parsing error for wedding form:", parseError, "Raw text:", text);
-            Alert.alert("Server Error", "Received invalid data from server for wedding form. Check server logs. Details: " + text.substring(0, 100) + "...");
-            return;
-        }
+            const serverUrl = "http://192.168.1.18/system/wedding_submit.php";
 
-        if (jsonResponse.status === "success") {
-            Alert.alert(
-                "WEDDING DATA SUBMITTED",
-                jsonResponse.message || "Mag intay lamang po ng text message mula sa ating Secretary para sa pag kumpirma ng Wedding Application.",
-                [{ text: "OK", onPress: () => resetFormAndGoToDashboard() }]
-            );
-        } else {
-            Alert.alert("Submission Failed", jsonResponse.message || "An unknown error occurred during submission.");
-            if (jsonResponse.details) {
-                console.error("Server submission error details:", jsonResponse.details);
+            // Map email_norm to email for wedding_submit.php
+            const submissionData = {
+                ...formData,
+                email: formData.email_norm, // <-- REQUIRED field for PHP
+            };
+            delete submissionData.email_norm; // remove email_norm to avoid confusion
+
+            console.log("Submitting wedding data:", submissionData);
+
+            const response = await fetch(serverUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(submissionData),
+            });
+
+            const text = await response.text();
+            console.log("📦 Raw wedding submission response:", text);
+
+            if (!text) {
+                Alert.alert("Server Error", "Server returned an empty response for wedding form. This might indicate a PHP error.");
+                return;
             }
-        }
 
-    } catch (error) {
-        console.error("❌ Network or Server Error during wedding submission:", error);
-        Alert.alert(
-            "Network Error",
-            `Could not connect to the server or a server error occurred. Please check your internet connection or server status. Details: ${error.message}`
-        );
-    }
-};
+            let jsonResponse;
+            try {
+                jsonResponse = JSON.parse(text);
+            } catch (parseError) {
+                console.error("❌ JSON parsing error for wedding form:", parseError, "Raw text:", text);
+                Alert.alert("Server Error", "Received invalid data from server for wedding form. Check server logs. Details: " + text.substring(0, 100) + "...");
+                return;
+            }
+
+            if (jsonResponse.status === "success") {
+                Alert.alert(
+                    "WEDDING DATA SUBMITTED",
+                    jsonResponse.message || "Mag intay lamang po ng text message mula sa ating Secretary para sa pag kumpirma ng Wedding Application.",
+                    [{ text: "OK", onPress: () => resetFormAndGoToDashboard() }]
+                );
+            } else {
+                Alert.alert("Submission Failed", jsonResponse.message || "An unknown error occurred during submission.");
+                if (jsonResponse.details) {
+                    console.error("Server submission error details:", jsonResponse.details);
+                }
+            }
+
+        } catch (error) {
+            console.error("❌ Network or Server Error during wedding submission:", error);
+            Alert.alert(
+                "Network Error",
+                `Could not connect to the server or a server error occurred. Please check your internet connection or server status. Details: ${error.message}`
+            );
+        }
+    };
 
     const handleSubmit = () => {
         console.log("Current formData:", formData);
@@ -237,6 +321,70 @@ const WeddingFormScreen = ({ navigation }) => {
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <ScrollView contentContainerStyle={styles.container}>
+                    {/* Date Pickers */}
+                    {showWeddingDatePicker && (
+                        <DateTimePicker
+                            value={new Date()}
+                            mode="datetime"
+                            display="default"
+                            onChange={onWeddingDateChange}
+                        />
+                    )}
+
+                    {showParishSchedulePicker && (
+                        <DateTimePicker
+                            value={new Date()}
+                            mode="datetime"
+                            display="default"
+                            onChange={onParishScheduleChange}
+                        />
+                    )}
+
+                    {showPriestInterviewPicker && (
+                        <DateTimePicker
+                            value={new Date()}
+                            mode="datetime"
+                            display="default"
+                            onChange={onPriestInterviewChange}
+                        />
+                    )}
+
+                    {showSeminarPicker && (
+                        <DateTimePicker
+                            value={new Date()}
+                            mode="datetime"
+                            display="default"
+                            onChange={onSeminarChange}
+                        />
+                    )}
+
+                    {showCounsellingPicker && (
+                        <DateTimePicker
+                            value={new Date()}
+                            mode="datetime"
+                            display="default"
+                            onChange={onCounsellingChange}
+                        />
+                    )}
+
+                    {showConfessionPicker && (
+                        <DateTimePicker
+                            value={new Date()}
+                            mode="datetime"
+                            display="default"
+                            onChange={onConfessionChange}
+                        />
+                    )}
+
+                    {showPaymentDatePicker && (
+                        <DateTimePicker
+                            value={new Date()}
+                            mode="date"
+                            display="default"
+                            onChange={onPaymentDateChange}
+                        />
+                    )}
+
                     <View style={styles.header}>
                         <Text style={styles.title}>KASUNDUAN AT MGA PAPELES NA KAILANGAN NG IKAKASAL</Text>
                     </View>
@@ -248,13 +396,17 @@ const WeddingFormScreen = ({ navigation }) => {
                             value={formData.surname}
                             onChangeText={(text) => handleInputChange('surname', text)} 
                         />
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="Petsa at Oras ng Kasal (MM/DD/YYYY HH:MM AM/PM)" 
-                            keyboardType="numbers-and-punctuation"
-                            value={formData.weddingDate}
-                            onChangeText={(text) => handleInputChange('weddingDate', text)} 
-                        />
+                        
+                        {/* Wedding Date with Date Picker */}
+                        <TouchableOpacity
+                            style={styles.dateInput}
+                            onPress={() => setShowWeddingDatePicker(true)}
+                        >
+                            <Text style={formData.weddingDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                {formData.weddingDate || "Petsa at Oras ng Kasal (Pindutin para pumili)"}
+                            </Text>
+                            <Ionicons name="calendar" size={20} color="#666" />
+                        </TouchableOpacity>
                     </View>
 
                     <View style={styles.card}>
@@ -343,41 +495,62 @@ const WeddingFormScreen = ({ navigation }) => {
 
                     <View style={styles.card}>
                         <Text style={styles.sectionTitle}>Schedule Details</Text>
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="Petsa at Oras sa Tanggapan ng Parokya (MM/DD/YYYY HH:MM AM/PM)" 
-                            keyboardType="numbers-and-punctuation"
-                            value={formData.parishSchedule}
-                            onChangeText={(text) => handleInputChange('parishSchedule', text)} 
-                        />
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="Interview ng Pari (MM/DD/YYYY HH:MM AM/PM)" 
-                            keyboardType="numbers-and-punctuation"
-                            value={formData.priestInterview}
-                            onChangeText={(text) => handleInputChange('priestInterview', text)} 
-                        />
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="Catechetical Seminar (MM/DD/YYYY HH:MM AM/PM)" 
-                            keyboardType="numbers-and-punctuation"
-                            value={formData.seminar}
-                            onChangeText={(text) => handleInputChange('seminar', text)} 
-                        />
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="Pre-cana Counselling (MM/DD/YYYY HH:MM AM/PM)" 
-                            keyboardType="numbers-and-punctuation"
-                            value={formData.counselling}
-                            onChangeText={(text) => handleInputChange('counselling', text)} 
-                        />
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="Kumpisal sa Pari (MM/DD/YYYY HH:MM AM/PM)" 
-                            keyboardType="numbers-and-punctuation"
-                            value={formData.confession}
-                            onChangeText={(text) => handleInputChange('confession', text)} 
-                        />
+                        
+                        {/* Parish Schedule with Date Picker */}
+                        <TouchableOpacity
+                            style={styles.dateInput}
+                            onPress={() => setShowParishSchedulePicker(true)}
+                        >
+                            <Text style={formData.parishSchedule ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                {formData.parishSchedule || "Petsa at Oras sa Tanggapan ng Parokya (Pindutin para pumili)"}
+                            </Text>
+                            <Ionicons name="calendar" size={20} color="#666" />
+                        </TouchableOpacity>
+
+                        {/* Priest Interview with Date Picker */}
+                        <TouchableOpacity
+                            style={styles.dateInput}
+                            onPress={() => setShowPriestInterviewPicker(true)}
+                        >
+                            <Text style={formData.priestInterview ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                {formData.priestInterview || "Interview ng Pari (Pindutin para pumili)"}
+                            </Text>
+                            <Ionicons name="calendar" size={20} color="#666" />
+                        </TouchableOpacity>
+
+                        {/* Seminar with Date Picker */}
+                        <TouchableOpacity
+                            style={styles.dateInput}
+                            onPress={() => setShowSeminarPicker(true)}
+                        >
+                            <Text style={formData.seminar ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                {formData.seminar || "Catechetical Seminar (Pindutin para pumili)"}
+                            </Text>
+                            <Ionicons name="calendar" size={20} color="#666" />
+                        </TouchableOpacity>
+
+                        {/* Counselling with Date Picker */}
+                        <TouchableOpacity
+                            style={styles.dateInput}
+                            onPress={() => setShowCounsellingPicker(true)}
+                        >
+                            <Text style={formData.counselling ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                {formData.counselling || "Pre-cana Counselling (Pindutin para pumili)"}
+                            </Text>
+                            <Ionicons name="calendar" size={20} color="#666" />
+                        </TouchableOpacity>
+
+                        {/* Confession with Date Picker */}
+                        <TouchableOpacity
+                            style={styles.dateInput}
+                            onPress={() => setShowConfessionPicker(true)}
+                        >
+                            <Text style={formData.confession ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                {formData.confession || "Kumpisal sa Pari (Pindutin para pumili)"}
+                            </Text>
+                            <Ionicons name="calendar" size={20} color="#666" />
+                        </TouchableOpacity>
+
                         <TextInput 
                             style={styles.input} 
                             placeholder="Binyag o Kumpil" 
@@ -400,13 +573,18 @@ const WeddingFormScreen = ({ navigation }) => {
                         <Text style={styles.paymentItem}>Nuptial Mass - Php 8,000 (Incl. Telang gayak at choir)</Text>
                         <Text style={styles.paymentItem}>Additional Flowers - Php 2,000</Text>
                         <Text style={styles.paymentItem}>Wedding Rite Only - Php 4,000</Text>
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="Petsa ng Bayad (MM/DD/YYYY)" 
-                            keyboardType="numbers-and-punctuation"
-                            value={formData.paymentDate}
-                            onChangeText={(text) => handleInputChange('paymentDate', text)} 
-                        />
+                        
+                        {/* Payment Date with Date Picker */}
+                        <TouchableOpacity
+                            style={styles.dateInput}
+                            onPress={() => setShowPaymentDatePicker(true)}
+                        >
+                            <Text style={formData.paymentDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                {formData.paymentDate || "Petsa ng Bayad (Pindutin para pumili)"}
+                            </Text>
+                            <Ionicons name="calendar" size={20} color="#666" />
+                        </TouchableOpacity>
+
                         <TextInput 
                             style={styles.input} 
                             placeholder="A.R No." 
@@ -523,103 +701,101 @@ const WeddingFormScreen = ({ navigation }) => {
                         </View>
                     </Modal>
 
-                  {/* Preview Modal */}
-<Modal visible={previewModalVisible} animationType="fade" transparent>
-  <View style={previewStyles.modalContainer}>
-    <Animated.View style={[previewStyles.modalContent, { opacity: fadeAnim }]}>
-      <View style={previewStyles.modalHeader}>
-        <Text style={previewStyles.modalTitle}>Wedding Form Preview</Text>
-        <Text style={previewStyles.modalSubtitle}>
-          Please review your information before submitting
-        </Text>
-      </View>
+                    {/* Preview Modal */}
+                    <Modal visible={previewModalVisible} animationType="fade" transparent>
+                        <View style={previewStyles.modalContainer}>
+                            <Animated.View style={[previewStyles.modalContent, { opacity: fadeAnim }]}>
+                                <View style={previewStyles.modalHeader}>
+                                    <Text style={previewStyles.modalTitle}>Wedding Form Preview</Text>
+                                    <Text style={previewStyles.modalSubtitle}>
+                                        Please review your information before submitting
+                                    </Text>
+                                </View>
 
-      <ScrollView style={previewStyles.scrollContainer}>
-        {/* 🔹 User Info from AuthContext */}
-        <PreviewSection title="User Information" icon="person">
-          <PreviewField label="Name" value={loggedInUser?.name || "N/A"} />
-          <PreviewField label="Email" value={loggedInUser?.email || "N/A"} />
-          <PreviewField label="Address" value={loggedInUser?.address || "N/A"} />
-          <PreviewField
-            label="Contact Number"
-            value={loggedInUser?.contact || "N/A"}
-          />
-        </PreviewSection>
+                                <ScrollView style={previewStyles.scrollContainer}>
+                                    {/* 🔹 User Info from AuthContext */}
+                                    <PreviewSection title="User Information" icon="person">
+                                        <PreviewField label="Name" value={loggedInUser?.name || "N/A"} />
+                                        <PreviewField label="Email" value={loggedInUser?.email || "N/A"} />
+                                        <PreviewField label="Address" value={loggedInUser?.address || "N/A"} />
+                                        <PreviewField
+                                            label="Contact Number"
+                                            value={loggedInUser?.contact || "N/A"}
+                                        />
+                                    </PreviewSection>
 
-        {/* Couple Info */}
-        <PreviewSection title="Couple Information" icon="people">
-          <PreviewField label="Surname" value={formData.surname} />
-          <PreviewField label="Wedding Date & Time" value={formData.weddingDate} />
-        </PreviewSection>
+                                    {/* Couple Info */}
+                                    <PreviewSection title="Couple Information" icon="people">
+                                        <PreviewField label="Surname" value={formData.surname} />
+                                        <PreviewField label="Wedding Date & Time" value={formData.weddingDate} />
+                                    </PreviewSection>
 
-        {/* Groom Info */}
-        <PreviewSection title="Groom's Information" icon="man">
-          <PreviewField label="Phone" value={formData.malePhone} />
-          <PreviewField label="Status" value={formData.maleStatus} />
-          <PreviewField label="Age" value={formData.maleAge} />
-          <PreviewField label="Address" value={formData.maleAddress} />
-          <PreviewField label="Father" value={formData.maleFather} />
-          <PreviewField label="Mother" value={formData.maleMother} />
-        </PreviewSection>
+                                    {/* Groom Info */}
+                                    <PreviewSection title="Groom's Information" icon="man">
+                                        <PreviewField label="Phone" value={formData.malePhone} />
+                                        <PreviewField label="Status" value={formData.maleStatus} />
+                                        <PreviewField label="Age" value={formData.maleAge} />
+                                        <PreviewField label="Address" value={formData.maleAddress} />
+                                        <PreviewField label="Father" value={formData.maleFather} />
+                                        <PreviewField label="Mother" value={formData.maleMother} />
+                                    </PreviewSection>
 
-        {/* Bride Info */}
-        <PreviewSection title="Bride's Information" icon="woman">
-          <PreviewField label="Phone" value={formData.femalePhone} />
-          <PreviewField label="Status" value={formData.femaleStatus} />
-          <PreviewField label="Age" value={formData.femaleAge} />
-          <PreviewField label="Address" value={formData.femaleAddress} />
-          <PreviewField label="Father" value={formData.femaleFather} />
-          <PreviewField label="Mother" value={formData.femaleMother} />
-        </PreviewSection>
+                                    {/* Bride Info */}
+                                    <PreviewSection title="Bride's Information" icon="woman">
+                                        <PreviewField label="Phone" value={formData.femalePhone} />
+                                        <PreviewField label="Status" value={formData.femaleStatus} />
+                                        <PreviewField label="Age" value={formData.femaleAge} />
+                                        <PreviewField label="Address" value={formData.femaleAddress} />
+                                        <PreviewField label="Father" value={formData.femaleFather} />
+                                        <PreviewField label="Mother" value={formData.femaleMother} />
+                                    </PreviewSection>
 
-        {/* Schedule */}
-        <PreviewSection title="Schedule Details" icon="calendar">
-          <PreviewField label="Parish Schedule" value={formData.parishSchedule} />
-          <PreviewField label="Priest Interview" value={formData.priestInterview} />
-          <PreviewField label="Seminar" value={formData.seminar} />
-          <PreviewField label="Counselling" value={formData.counselling} />
-          <PreviewField label="Confession" value={formData.confession} />
-          <PreviewField
-            label="Baptism/Confirmation"
-            value={formData.baptismConfirmation}
-          />
-        </PreviewSection>
+                                    {/* Schedule */}
+                                    <PreviewSection title="Schedule Details" icon="calendar">
+                                        <PreviewField label="Parish Schedule" value={formData.parishSchedule} />
+                                        <PreviewField label="Priest Interview" value={formData.priestInterview} />
+                                        <PreviewField label="Seminar" value={formData.seminar} />
+                                        <PreviewField label="Counselling" value={formData.counselling} />
+                                        <PreviewField label="Confession" value={formData.confession} />
+                                        <PreviewField
+                                            label="Baptism/Confirmation"
+                                            value={formData.baptismConfirmation}
+                                        />
+                                    </PreviewSection>
 
-        {/* Payment */}
-        <PreviewSection title="Payment Information" icon="card">
-          <PreviewField label="Payment Date" value={formData.paymentDate} />
-          <PreviewField label="A.R. No." value={formData.arNo} />
-          <PreviewField label="Amount" value={formData.paymentAmount} />
-        </PreviewSection>
-      </ScrollView>
+                                    {/* Payment */}
+                                    <PreviewSection title="Payment Information" icon="card">
+                                        <PreviewField label="Payment Date" value={formData.paymentDate} />
+                                        <PreviewField label="A.R. No." value={formData.arNo} />
+                                        <PreviewField label="Amount" value={formData.paymentAmount} />
+                                    </PreviewSection>
+                                </ScrollView>
 
-      <View style={previewStyles.modalFooter}>
-        <TouchableOpacity
-          style={[previewStyles.footerButton, previewStyles.editButton]}
-          onPress={closePreviewModal}
-        >
-          <Ionicons name="create-outline" size={18} color="#4a6ea9" />
-          <Text style={previewStyles.editButtonText}>Edit Information</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[previewStyles.footerButton, previewStyles.submitButton]}
-          onPress={handleConfirmSubmit}
-        >
-          <Ionicons name="checkmark-circle-outline" size={18} color="white" />
-          <Text style={previewStyles.submitButtonText}>Confirm Submission</Text>
-        </TouchableOpacity>
-      </View>
-    </Animated.View>
-  </View>
-</Modal>
+                                <View style={previewStyles.modalFooter}>
+                                    <TouchableOpacity
+                                        style={[previewStyles.footerButton, previewStyles.editButton]}
+                                        onPress={closePreviewModal}
+                                    >
+                                        <Ionicons name="create-outline" size={18} color="#4a6ea9" />
+                                        <Text style={previewStyles.editButtonText}>Edit Information</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={[previewStyles.footerButton, previewStyles.submitButton]}
+                                        onPress={handleConfirmSubmit}
+                                    >
+                                        <Ionicons name="checkmark-circle-outline" size={18} color="white" />
+                                        <Text style={previewStyles.submitButtonText}>Confirm Submission</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </Animated.View>
+                        </View>
+                    </Modal>
 
                 </ScrollView>
             </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
     );
 };
-
-// ... rest of your styles remain the same
 
 const styles = StyleSheet.create({
     container: {
@@ -672,6 +848,25 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#ddd',
         fontSize: 16,
+    },
+    dateInput: {
+        backgroundColor: '#f8f9fa',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    dateInputText: {
+        fontSize: 16,
+        color: '#2c3e50',
+    },
+    dateInputPlaceholder: {
+        fontSize: 16,
+        color: '#999',
     },
     noticeContainer: {
         backgroundColor: '#fff3cd',
@@ -739,6 +934,8 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
 });
+
+// ... (keep the existing previewStyles and demandStyles objects exactly as they are)
 
 const previewStyles = StyleSheet.create({
     modalContainer: {

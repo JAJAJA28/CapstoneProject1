@@ -19,16 +19,22 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from "../AuthContext";
-
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const { width, height } = Dimensions.get("window");
 
 const BaptismalFormScreen = () => {
-  const { loggedInUser } = useAuth();  // makukuha mo na yung email dito
+  const { loggedInUser } = useAuth();
   const [requirementsModalVisible, setRequirementsModalVisible] = useState(false);
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const navigation = useNavigation();
   const fadeAnim = useState(new Animated.Value(0))[0];
+
+  // Date picker states
+  const [showBaptismDatePicker, setShowBaptismDatePicker] = useState(false);
+  const [showPaymentDatePicker, setShowPaymentDatePicker] = useState(false);
+  const [showBirthDatePicker, setShowBirthDatePicker] = useState(false);
+  const [showBaptismTimePicker, setShowBaptismTimePicker] = useState(false);
 
   const [formData, setFormData] = useState({
     ContactNumber: "",
@@ -57,11 +63,59 @@ const BaptismalFormScreen = () => {
     ninang2: "",
     ninang2_age: "",
     ninang2_address: "",
-    email: loggedInUser?.email || "guest@example.com" // auto from login
+    email: loggedInUser?.email || "guest@example.com"
   });
 
   const handleChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
+  };
+
+  // Date handling functions
+  const formatDate = (date) => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
+  };
+
+  const formatTime = (date) => {
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    minutes = minutes.toString().padStart(2, '0');
+    
+    return `${hours}:${minutes} ${ampm}`;
+  };
+
+  const onBaptismDateChange = (event, selectedDate) => {
+    setShowBaptismDatePicker(false);
+    if (selectedDate) {
+      handleChange("BaptismDate", formatDate(selectedDate));
+    }
+  };
+
+  const onPaymentDateChange = (event, selectedDate) => {
+    setShowPaymentDatePicker(false);
+    if (selectedDate) {
+      handleChange("PaymentDate", formatDate(selectedDate));
+    }
+  };
+
+  const onBirthDateChange = (event, selectedDate) => {
+    setShowBirthDatePicker(false);
+    if (selectedDate) {
+      handleChange("BirthDate", formatDate(selectedDate));
+    }
+  };
+
+  const onBaptismTimeChange = (event, selectedDate) => {
+    setShowBaptismTimePicker(false);
+    if (selectedDate) {
+      handleChange("BaptismTime", formatTime(selectedDate));
+    }
   };
 
   const handleSubmit = async () => {
@@ -166,7 +220,7 @@ const BaptismalFormScreen = () => {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-            <Text style={styles.header}>BAPTISMAL FORM</Text>
+          <Text style={styles.header}>BAPTISMAL FORM</Text>
 
           {/* Contact & Schedule */}
           <Text style={styles.sectionHeader}>📞 Contact & Schedule</Text>
@@ -174,93 +228,241 @@ const BaptismalFormScreen = () => {
             style={styles.input} 
             placeholder="Contact Number" 
             keyboardType="phone-pad"
+            value={formData.ContactNumber}
             onChangeText={(text) => handleChange("ContactNumber", text)} 
           />
-          <TextInput 
-            style={styles.input} 
-            placeholder="Baptism Date (MM/DD/YYYY)" 
-            keyboardType="numbers-and-punctuation"
-            onChangeText={(text) => handleChange("BaptismDate", text)} 
-          />
-          <TextInput 
-            style={styles.input} 
-            placeholder="Baptism Time (HH:MM AM/PM)" 
-            keyboardType="numbers-and-punctuation"
-            onChangeText={(text) => handleChange("BaptismTime", text)} 
-          />
-          <TextInput 
-            style={styles.input} 
-            placeholder="Payment Date (MM/DD/YYYY)" 
-            keyboardType="numbers-and-punctuation"
-            onChangeText={(text) => handleChange("PaymentDate", text)} 
-          />
+          
+          {/* Baptism Date with Date Picker */}
+          <TouchableOpacity 
+            style={styles.dateInput}
+            onPress={() => setShowBaptismDatePicker(true)}
+          >
+            <Text style={formData.BaptismDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+              {formData.BaptismDate || "Baptism Date (Tap to select)"}
+            </Text>
+            <Ionicons name="calendar" size={20} color="#666" />
+          </TouchableOpacity>
+
+          {/* Baptism Time with Time Picker */}
+          <TouchableOpacity 
+            style={styles.dateInput}
+            onPress={() => setShowBaptismTimePicker(true)}
+          >
+            <Text style={formData.BaptismTime ? styles.dateInputText : styles.dateInputPlaceholder}>
+              {formData.BaptismTime || "Baptism Time (Tap to select)"}
+            </Text>
+            <Ionicons name="time" size={20} color="#666" />
+          </TouchableOpacity>
+
+          {/* Payment Date with Date Picker */}
+          <TouchableOpacity 
+            style={styles.dateInput}
+            onPress={() => setShowPaymentDatePicker(true)}
+          >
+            <Text style={formData.PaymentDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+              {formData.PaymentDate || "Payment Date (Tap to select)"}
+            </Text>
+            <Ionicons name="calendar" size={20} color="#666" />
+          </TouchableOpacity>
 
           {/* Child's Information */}
           <Text style={styles.sectionHeader}>👶 Child's Information</Text>
-          <TextInput style={styles.input} placeholder="Child's Name" onChangeText={(text) => handleChange("ChildName", text)} />
-          <TextInput style={styles.input} placeholder="Religion" onChangeText={(text) => handleChange("Religion", text)} />
           <TextInput 
             style={styles.input} 
-            placeholder="Birth Date (MM/DD/YYYY)" 
-            keyboardType="numbers-and-punctuation"
-            onChangeText={(text) => handleChange("BirthDate", text)} 
+            placeholder="Child's Name" 
+            value={formData.ChildName}
+            onChangeText={(text) => handleChange("ChildName", text)} 
           />
-          <TextInput style={styles.input} placeholder="Birth Place" onChangeText={(text) => handleChange("BirthPlace", text)} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="Religion" 
+            value={formData.Religion}
+            onChangeText={(text) => handleChange("Religion", text)} 
+          />
+          
+          {/* Birth Date with Date Picker */}
+          <TouchableOpacity 
+            style={styles.dateInput}
+            onPress={() => setShowBirthDatePicker(true)}
+          >
+            <Text style={formData.BirthDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+              {formData.BirthDate || "Birth Date (Tap to select)"}
+            </Text>
+            <Ionicons name="calendar" size={20} color="#666" />
+          </TouchableOpacity>
+
+          <TextInput 
+            style={styles.input} 
+            placeholder="Birth Place" 
+            value={formData.BirthPlace}
+            onChangeText={(text) => handleChange("BirthPlace", text)} 
+          />
 
           {/* Parents' Information */}
           <Text style={styles.sectionHeader}>👨‍👩‍👧 Parents' Information</Text>
-          <TextInput style={styles.input} placeholder="Father's Name" onChangeText={(text) => handleChange("FatherName", text)} />
-          <TextInput style={styles.input} placeholder="Father's Birth Place" onChangeText={(text) => handleChange("fatherBirthPlace", text)} />
-          <TextInput style={styles.input} placeholder="Mother's Name" onChangeText={(text) => handleChange("MotherName", text)} />
-          <TextInput style={styles.input} placeholder="Mother's Birth Place" onChangeText={(text) => handleChange("MotherBirthPlace", text)} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="Father's Name" 
+            value={formData.FatherName}
+            onChangeText={(text) => handleChange("FatherName", text)} 
+          />
+          <TextInput 
+            style={styles.input} 
+            placeholder="Father's Birth Place" 
+            value={formData.fatherBirthPlace}
+            onChangeText={(text) => handleChange("fatherBirthPlace", text)} 
+          />
+          <TextInput 
+            style={styles.input} 
+            placeholder="Mother's Name" 
+            value={formData.MotherName}
+            onChangeText={(text) => handleChange("MotherName", text)} 
+          />
+          <TextInput 
+            style={styles.input} 
+            placeholder="Mother's Birth Place" 
+            value={formData.MotherBirthPlace}
+            onChangeText={(text) => handleChange("MotherBirthPlace", text)} 
+          />
 
-           {/* Address & Marriage */}
-           <Text style={styles.sectionHeader}>🏠 Address & Marriage</Text>
-          <TextInput style={styles.input} placeholder="Address" onChangeText={(text) => handleChange("Address", text)} />
-          <TextInput style={styles.input} placeholder="Marriage Type" onChangeText={(text) => handleChange("MarriageType", text)} />
+          {/* Address & Marriage */}
+          <Text style={styles.sectionHeader}>🏠 Address & Marriage</Text>
+          <TextInput 
+            style={styles.input} 
+            placeholder="Address" 
+            value={formData.Address}
+            onChangeText={(text) => handleChange("Address", text)} 
+          />
+          <TextInput 
+            style={styles.input} 
+            placeholder="Marriage Type" 
+            value={formData.MarriageType}
+            onChangeText={(text) => handleChange("MarriageType", text)} 
+          />
 
           {/* Sponsors */}
           <Text style={styles.sectionHeader}>🎉 Sponsors</Text>
 
           {/* Ninong 1 */}
-          <TextInput style={styles.input} placeholder="NINONG SA BINYAG 1" onChangeText={(text) => handleChange("ninong1", text)} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="NINONG SA BINYAG 1" 
+            value={formData.ninong1}
+            onChangeText={(text) => handleChange("ninong1", text)} 
+          />
           <TextInput 
             style={styles.input} 
             placeholder="EDAD" 
-            keyboardType="numeric" 
+            keyboardType="numeric"
+            value={formData.ninong1_age}
             onChangeText={(text) => handleChange("ninong1_age", text)} 
           />
-          <TextInput style={styles.input} placeholder="TIRAHAN" onChangeText={(text) => handleChange("ninong1_address", text)} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="TIRAHAN" 
+            value={formData.ninong1_address}
+            onChangeText={(text) => handleChange("ninong1_address", text)} 
+          />
 
           {/* Ninang 1 */}
-          <TextInput style={styles.input} placeholder="NINANG SA BINYAG 1" onChangeText={(text) => handleChange("ninang1", text)} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="NINANG SA BINYAG 1" 
+            value={formData.ninang1}
+            onChangeText={(text) => handleChange("ninang1", text)} 
+          />
           <TextInput 
             style={styles.input} 
             placeholder="EDAD" 
-            keyboardType="numeric" 
+            keyboardType="numeric"
+            value={formData.ninang1_age}
             onChangeText={(text) => handleChange("ninang1_age", text)} 
           />
-          <TextInput style={styles.input} placeholder="TIRAHAN" onChangeText={(text) => handleChange("ninang1_address", text)} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="TIRAHAN" 
+            value={formData.ninang1_address}
+            onChangeText={(text) => handleChange("ninang1_address", text)} 
+          />
 
           {/* Ninong 2 */}
-          <TextInput style={styles.input} placeholder="NINONG SA BINYAG 2" onChangeText={(text) => handleChange("ninong2", text)} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="NINONG SA BINYAG 2" 
+            value={formData.ninong2}
+            onChangeText={(text) => handleChange("ninong2", text)} 
+          />
           <TextInput 
             style={styles.input} 
             placeholder="EDAD" 
-            keyboardType="numeric" 
+            keyboardType="numeric"
+            value={formData.ninong2_age}
             onChangeText={(text) => handleChange("ninong2_age", text)} 
           />
-          <TextInput style={styles.input} placeholder="TIRAHAN" onChangeText={(text) => handleChange("ninong2_address", text)} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="TIRAHAN" 
+            value={formData.ninong2_address}
+            onChangeText={(text) => handleChange("ninong2_address", text)} 
+          />
 
           {/* Ninang 2 */}
-          <TextInput style={styles.input} placeholder="NINANG SA BINYAG 2" onChangeText={(text) => handleChange("ninang2", text)} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="NINANG SA BINYAG 2" 
+            value={formData.ninang2}
+            onChangeText={(text) => handleChange("ninang2", text)} 
+          />
           <TextInput 
             style={styles.input} 
             placeholder="EDAD" 
-            keyboardType="numeric" 
+            keyboardType="numeric"
+            value={formData.ninang2_age}
             onChangeText={(text) => handleChange("ninang2_age", text)} 
           />
-          <TextInput style={styles.input} placeholder="TIRAHAN" onChangeText={(text) => handleChange("ninang2_address", text)} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="TIRAHAN" 
+            value={formData.ninang2_address}
+            onChangeText={(text) => handleChange("ninang2_address", text)} 
+          />
+
+          {/* Date Pickers */}
+          {showBaptismDatePicker && (
+            <DateTimePicker
+              value={new Date()}
+              mode="date"
+              display="default"
+              onChange={onBaptismDateChange}
+            />
+          )}
+
+          {showPaymentDatePicker && (
+            <DateTimePicker
+              value={new Date()}
+              mode="date"
+              display="default"
+              onChange={onPaymentDateChange}
+            />
+          )}
+
+          {showBirthDatePicker && (
+            <DateTimePicker
+              value={new Date()}
+              mode="date"
+              display="default"
+              onChange={onBirthDateChange}
+            />
+          )}
+
+          {showBaptismTimePicker && (
+            <DateTimePicker
+              value={new Date()}
+              mode="time"
+              display="default"
+              onChange={onBaptismTimeChange}
+            />
+          )}
 
           {/* Buttons */}
           <View style={styles.buttonContainer}>
@@ -487,6 +689,25 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     backgroundColor: "#f9f9f9",
   },
+  dateInput: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 10,
+    backgroundColor: "#f9f9f9",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateInputText: {
+    fontSize: 16,
+    color: "#000",
+  },
+  dateInputPlaceholder: {
+    fontSize: 16,
+    color: "#999",
+  },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -525,30 +746,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
-  closeButton: {
-    marginTop: 20,
-    backgroundColor: "#e74c3c",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    width: "100%",
-    alignItems: "center",
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  modalContent: {
-    width: "80%",
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
-  },
-  modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10, textAlign: "center" },
-  modalText: { fontSize: 16, marginBottom: 5 },
 });
+
+// ... (keep the existing previewStyles and demandStyles objects exactly as they are)
 
 const previewStyles = StyleSheet.create({
   modalContainer: {

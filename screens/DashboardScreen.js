@@ -12,7 +12,7 @@ const DashboardScreen = ({ navigation }) => {
 const DashboardContent = ({ navigation }) => {
   const services = [
     { name: "BAPTISM",  screen: "BaptismalForm", color: "#4e54c8", gradient: ["#4e54c8", "#8f94fb"], image: require("../assets/Sacra6Baptism.png"), icon: "water" },
-    { name: "FIRST COMMUNION", screen: "FirstCommunionForm", color: "#38ef7d", gradient: ["#11998e", "#38ef7d"], image: require("../assets/Sacra5FirstComm.png"), icon: "rice" },
+    { name: "FIRST COMMUNION", screen: "FirstCommunionForm", color: "#38ef7d", gradient: ["#11998e", "#38ef7d"], image: require("../assets/Sacra5FirstComm.png"), icon: "bread-slice" },
     { name: "CONFIRMATION", screen: "ConfirmationForm", color: "#f5af19", gradient: ["#f12711", "#f5af19"], image: require("../assets/Sacra7Confi.png"), icon: "fire" },
     { name: "CONFESSION", screen: "ConfessionForm", color: "#8E2DE2", gradient: ["#4A00E0", "#8E2DE2"], image: require("../assets/Sacra3Confess.png"), icon: "chat" },
     { name: "SICK CALL", screen: "SickCallForm", color: "#f5576c", gradient: ["#f093fb", "#f5576c"], image: require("../assets/Sacra4SickCall.png"), icon: "hospital" },

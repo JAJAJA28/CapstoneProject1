@@ -337,6 +337,23 @@ const dailyReadings = {
             <MaterialCommunityIcons name="heart-outline" size={20} color="#FFF" />
             <Text style={styles.donationButtonText}>Make a Donation</Text>
           </TouchableOpacity>
+
+           {/* Request Certificate Button - ADD THIS */}
+          <TouchableOpacity 
+            style={[styles.certificateButton]} 
+            onPress={() => navigation.navigate('RequestCertificate')}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={isDarkMode ? ['#059669', '#047857'] : ['#10b981', '#059669']}
+              style={[StyleSheet.absoluteFill, { borderRadius: 14 }]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            />
+            <MaterialCommunityIcons name="certificate" size={20} color="#FFF" />
+            <Text style={styles.donationButtonText}>Request Certificate</Text>
+          </TouchableOpacity>
+       
         </Animated.View>
 
         {/* Prayer Buttons Grid */}
@@ -1117,6 +1134,22 @@ slideImage: {
   contactText: {
     fontSize: 15,
   },
+  // Add this to the styles object in HomeScreen.js
+certificateButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingVertical: 16,
+  paddingHorizontal: 24,
+  borderRadius: 14,
+  overflow: 'hidden',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 6 },
+  shadowOpacity: 0.2,
+  shadowRadius: 8,
+  elevation: 6,
+  marginTop: 12,
+},
 });
 
 export default HomeScreen;

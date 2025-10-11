@@ -20,15 +20,22 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../AuthContext";
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const { width, height } = Dimensions.get("window");
 
 const ConfirmationForm = () => {
-    const { loggedInUser } = useAuth();  // makukuha mo na yung email dito
+    const { loggedInUser } = useAuth();
     const [requirementsModalVisible, setRequirementsModalVisible] = useState(false);
     const [previewModalVisible, setPreviewModalVisible] = useState(false);
     const navigation = useNavigation();
     const fadeAnim = useState(new Animated.Value(0))[0];
+
+    // Date picker states
+    const [showConfirmationDatePicker, setShowConfirmationDatePicker] = useState(false);
+    const [showFirstCommunionDatePicker, setShowFirstCommunionDatePicker] = useState(false);
+    const [showBaptismDatePicker, setShowBaptismDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
 
     const [formData, setFormData] = useState({
         contactNumber: "",
@@ -54,8 +61,56 @@ const ConfirmationForm = () => {
         ninang1: "",
         ninong2: "",
         ninang2: "",
-        email: loggedInUser?.email || "guest@example.com" // auto from login
+        email: loggedInUser?.email || "guest@example.com"
     });
+
+    // Date handling functions
+    const formatDate = (date) => {
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${month}/${day}/${year}`;
+    };
+
+    const formatTime = (date) => {
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        minutes = minutes.toString().padStart(2, '0');
+        
+        return `${hours}:${minutes} ${ampm}`;
+    };
+
+    const onConfirmationDateChange = (event, selectedDate) => {
+        setShowConfirmationDatePicker(false);
+        if (selectedDate) {
+            handleChange("petsaNgKumpil", formatDate(selectedDate));
+        }
+    };
+
+    const onFirstCommunionDateChange = (event, selectedDate) => {
+        setShowFirstCommunionDatePicker(false);
+        if (selectedDate) {
+            handleChange("petsaNg1stCommunion", formatDate(selectedDate));
+        }
+    };
+
+    const onBaptismDateChange = (event, selectedDate) => {
+        setShowBaptismDatePicker(false);
+        if (selectedDate) {
+            handleChange("petsaNgBinyag", formatDate(selectedDate));
+        }
+    };
+
+    const onTimeChange = (event, selectedDate) => {
+        setShowTimePicker(false);
+        if (selectedDate) {
+            handleChange("oras", formatTime(selectedDate));
+        }
+    };
 
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
@@ -186,6 +241,43 @@ const ConfirmationForm = () => {
                         keyboardShouldPersistTaps="handled"
                         showsVerticalScrollIndicator={false}
                     >
+                        {/* Date Pickers */}
+                        {showConfirmationDatePicker && (
+                            <DateTimePicker
+                                value={new Date()}
+                                mode="date"
+                                display="default"
+                                onChange={onConfirmationDateChange}
+                            />
+                        )}
+
+                        {showFirstCommunionDatePicker && (
+                            <DateTimePicker
+                                value={new Date()}
+                                mode="date"
+                                display="default"
+                                onChange={onFirstCommunionDateChange}
+                            />
+                        )}
+
+                        {showBaptismDatePicker && (
+                            <DateTimePicker
+                                value={new Date()}
+                                mode="date"
+                                display="default"
+                                onChange={onBaptismDateChange}
+                            />
+                        )}
+
+                        {showTimePicker && (
+                            <DateTimePicker
+                                value={new Date()}
+                                mode="time"
+                                display="default"
+                                onChange={onTimeChange}
+                            />
+                        )}
+
                         <View style={styles.headerContainer}>
                             <Text style={styles.header}>CONFIRMATION FORM</Text>
                             <View style={styles.headerLine} />
@@ -201,29 +293,42 @@ const ConfirmationForm = () => {
                                 placeholder="CONTACT #" 
                                 placeholderTextColor="#999"
                                 keyboardType="phone-pad"
+                                value={formData.contactNumber}
                                 onChangeText={(text) => handleChange("contactNumber", text)} 
                             />
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder="Confirmation Date (MM/DD/YYYY)" 
-                                placeholderTextColor="#999"
-                                keyboardType="numbers-and-punctuation"
-                                onChangeText={(text) => handleChange("petsaNgKumpil", text)} 
-                            />
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder="First Communion Date (MM/DD/YYYY)" 
-                                placeholderTextColor="#999"
-                                keyboardType="numbers-and-punctuation"
-                                onChangeText={(text) => handleChange("petsaNg1stCommunion", text)} 
-                            />
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder="Time (HH:MM AM/PM)" 
-                                placeholderTextColor="#999"
-                                keyboardType="numbers-and-punctuation"
-                                onChangeText={(text) => handleChange("oras", text)} 
-                            />
+                            
+                            {/* Confirmation Date with Date Picker */}
+                            <TouchableOpacity
+                                style={styles.dateInput}
+                                onPress={() => setShowConfirmationDatePicker(true)}
+                            >
+                                <Text style={formData.petsaNgKumpil ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                    {formData.petsaNgKumpil || "Confirmation Date (Tap to select)"}
+                                </Text>
+                                <Ionicons name="calendar" size={20} color="#666" />
+                            </TouchableOpacity>
+
+                            {/* First Communion Date with Date Picker */}
+                            <TouchableOpacity
+                                style={styles.dateInput}
+                                onPress={() => setShowFirstCommunionDatePicker(true)}
+                            >
+                                <Text style={formData.petsaNg1stCommunion ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                    {formData.petsaNg1stCommunion || "First Communion Date (Tap to select)"}
+                                </Text>
+                                <Ionicons name="calendar" size={20} color="#666" />
+                            </TouchableOpacity>
+
+                            {/* Time with Time Picker */}
+                            <TouchableOpacity
+                                style={styles.dateInput}
+                                onPress={() => setShowTimePicker(true)}
+                            >
+                                <Text style={formData.oras ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                    {formData.oras || "Time (Tap to select)"}
+                                </Text>
+                                <Ionicons name="time" size={20} color="#666" />
+                            </TouchableOpacity>
                         </View>
 
                         <View style={styles.formSection}>
@@ -235,24 +340,28 @@ const ConfirmationForm = () => {
                                 style={styles.input} 
                                 placeholder="FULL NAME" 
                                 placeholderTextColor="#999"
+                                value={formData.pangalanNgKukumpilan}
                                 onChangeText={(text) => handleChange("pangalanNgKukumpilan", text)} 
                             />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="ADDRESS" 
                                 placeholderTextColor="#999"
+                                value={formData.tirahan}
                                 onChangeText={(text) => handleChange("tirahan", text)} 
                             />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="PARISH" 
                                 placeholderTextColor="#999"
+                                value={formData.tagaSaangParokya}
                                 onChangeText={(text) => handleChange("tagaSaangParokya", text)} 
                             />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="PROVINCE" 
                                 placeholderTextColor="#999"
+                                value={formData.saangLalawigan}
                                 onChangeText={(text) => handleChange("saangLalawigan", text)} 
                             />
                         </View>
@@ -266,24 +375,28 @@ const ConfirmationForm = () => {
                                 style={styles.input} 
                                 placeholder="FATHER'S NAME" 
                                 placeholderTextColor="#999"
+                                value={formData.pangalanNgAma}
                                 onChangeText={(text) => handleChange("pangalanNgAma", text)} 
                             />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="FATHER'S BIRTHPLACE" 
                                 placeholderTextColor="#999"
+                                value={formData.lugarNgKapanganakanAma}
                                 onChangeText={(text) => handleChange("lugarNgKapanganakanAma", text)} 
                             />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="FATHER'S PARISH" 
                                 placeholderTextColor="#999"
+                                value={formData.tagaSaangParokyaAma}
                                 onChangeText={(text) => handleChange("tagaSaangParokyaAma", text)} 
                             />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="FATHER'S PROVINCE" 
                                 placeholderTextColor="#999"
+                                value={formData.saangLalawiganAma}
                                 onChangeText={(text) => handleChange("saangLalawiganAma", text)} 
                             />
                         </View>
@@ -297,24 +410,28 @@ const ConfirmationForm = () => {
                                 style={styles.input} 
                                 placeholder="MOTHER'S NAME" 
                                 placeholderTextColor="#999"
+                                value={formData.pangalanNgIna}
                                 onChangeText={(text) => handleChange("pangalanNgIna", text)} 
                             />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="MOTHER'S BIRTHPLACE" 
                                 placeholderTextColor="#999"
+                                value={formData.lugarNgKapanganakanIna}
                                 onChangeText={(text) => handleChange("lugarNgKapanganakanIna", text)} 
                             />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="MOTHER'S PARISH" 
                                 placeholderTextColor="#999"
+                                value={formData.tagaSaangParokyaIna}
                                 onChangeText={(text) => handleChange("tagaSaangParokyaIna", text)} 
                             />
                            <TextInput 
                                 style={styles.input} 
                                 placeholder="MOTHER'S PROVINCE" 
                                 placeholderTextColor="#999"
+                                value={formData.saangLalawiganIna}
                                 onChangeText={(text) => handleChange("saangLalawiganIna", text)} 
                             />
                         </View>
@@ -324,23 +441,30 @@ const ConfirmationForm = () => {
                                 <Ionicons name="water" size={20} color="#4A90E2" />
                                 <Text style={styles.sectionHeaderText}>Baptism Information</Text>
                             </View>
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder="BAPTISM DATE (MM/DD/YYYY)" 
-                                placeholderTextColor="#999"
-                                keyboardType="numbers-and-punctuation"
-                                onChangeText={(text) => handleChange("petsaNgBinyag", text)} 
-                            />
+                            
+                            {/* Baptism Date with Date Picker */}
+                            <TouchableOpacity
+                                style={styles.dateInput}
+                                onPress={() => setShowBaptismDatePicker(true)}
+                            >
+                                <Text style={formData.petsaNgBinyag ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                    {formData.petsaNgBinyag || "Baptism Date (Tap to select)"}
+                                </Text>
+                                <Ionicons name="calendar" size={20} color="#666" />
+                            </TouchableOpacity>
+
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="BAPTISM LOCATION" 
                                 placeholderTextColor="#999"
+                                value={formData.saanBinyag}
                                 onChangeText={(text) => handleChange("saanBinyag", text)} 
                             />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="CONFIRMED BY" 
                                 placeholderTextColor="#999"
+                                value={formData.pangalanNgNagkumpil}
                                 onChangeText={(text) => handleChange("pangalanNgNagkumpil", text)} 
                             />
                         </View>
@@ -354,24 +478,28 @@ const ConfirmationForm = () => {
                                 style={styles.input} 
                                 placeholder="GODFATHER 1" 
                                 placeholderTextColor="#999"
+                                value={formData.ninong1}
                                 onChangeText={(text) => handleChange("ninong1", text)} 
                             />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="GODMOTHER 1" 
                                 placeholderTextColor="#999"
+                                value={formData.ninang1}
                                 onChangeText={(text) => handleChange("ninang1", text)} 
                             />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="GODFATHER 2" 
                                 placeholderTextColor="#999"
+                                value={formData.ninong2}
                                 onChangeText={(text) => handleChange("ninong2", text)} 
                             />
                             <TextInput 
                                 style={styles.input} 
                                 placeholder="GODMOTHER 2" 
                                 placeholderTextColor="#999"
+                                value={formData.ninang2}
                                 onChangeText={(text) => handleChange("ninang2", text)} 
                             />
                         </View>
@@ -518,7 +646,7 @@ const ConfirmationForm = () => {
                                             <PreviewField label="Mother's Name" value={formData.pangalanNgIna} />
                                             <PreviewField label="Mother's Birthplace" value={formData.lugarNgKapanganakanIna} />
                                             <PreviewField label="Mother's Parish" value={formData.tagaSaangParokyaIna} />
-                                            <PreviewField label="Mother's Province" value={formData.saangLalawiganIna} />
+                                            <PreviewField label="Mother's Province" value={formData.saanglalawiganIna} />
                                         </PreviewSection>
 
                                         <PreviewSection title="Baptism Information" icon="water">
@@ -626,6 +754,25 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#2C3E50',
     },
+    dateInput: {
+        backgroundColor: '#F8F9FA',
+        padding: 14,
+        marginBottom: 12,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#E9ECEF',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    dateInputText: {
+        fontSize: 16,
+        color: '#2C3E50',
+    },
+    dateInputPlaceholder: {
+        fontSize: 16,
+        color: '#999',
+    },
     buttonContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
@@ -665,6 +812,8 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
 });
+
+// ... (keep the existing previewStyles and demandStyles objects exactly as they are)
 
 const previewStyles = StyleSheet.create({
     modalContainer: {

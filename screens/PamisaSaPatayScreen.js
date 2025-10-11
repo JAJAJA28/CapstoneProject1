@@ -23,33 +23,62 @@ import { useAuth } from "../AuthContext";
 const { height, width } = Dimensions.get("window");
 
 const PamisaSaPatayScreen = () => {
-  const { loggedInUser } = useAuth();  // makukuha mo na yung email dito
+  const { loggedInUser } = useAuth();
   const [requirementsModalVisible, setRequirementsModalVisible] = useState(false);
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const navigation = useNavigation();
   const fadeAnim = useState(new Animated.Value(0))[0];
 
- const initialFormState = {
-  burialDate: "",
-  burialTime: "",
-  deceasedName: "",
-  age: "",
-  deathDate: "",
-  deathYear: "",
-  fatherName: "",
-  motherName: "",
-  spouseName: "",
-  residence: "",
-  reasonNoSacrament: "",
-  causeOfDeath: "",
-  contactName: "",
-  contactResidence: "",
-  phone: "",
-  cellphone: "",
-  donationAmount: "",
-  email_norm: loggedInUser?.email || "guest@example.com" // ✨ palitan na agad dito
-};
+  // Function to get current date in YYYY-MM-DD format
+  const getCurrentDate = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
+  // Function to get current time in HH:MM format
+  const getCurrentTime = () => {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  // Function to get current month and day in MM-DD format
+  const getCurrentMonthDay = () => {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${month}-${day}`;
+  };
+
+  // Function to get current year
+  const getCurrentYear = () => {
+    return new Date().getFullYear().toString();
+  };
+
+  const initialFormState = {
+    burialDate: getCurrentDate(), // Auto-set current date
+    burialTime: getCurrentTime(), // Auto-set current time
+    deceasedName: "",
+    age: "",
+    deathDate: getCurrentMonthDay(), // Auto-set current month-day
+    deathYear: getCurrentYear(), // Auto-set current year
+    fatherName: "",
+    motherName: "",
+    spouseName: "",
+    residence: "",
+    reasonNoSacrament: "",
+    causeOfDeath: "",
+    contactName: "",
+    contactResidence: "",
+    phone: "",
+    cellphone: "",
+    donationAmount: "",
+    email_norm: loggedInUser?.email || "guest@example.com"
+  };
 
   const [formData, setFormData] = useState(initialFormState);
 
@@ -58,10 +87,30 @@ const PamisaSaPatayScreen = () => {
     if (loggedInUser?.email) {
       setFormData((prev) => ({
         ...prev,
-        email: loggedInUser.email
+        email_norm: loggedInUser.email
       }));
     }
   }, [loggedInUser]);
+
+  // Function to refresh date and time fields
+  const refreshDateTimeFields = () => {
+    setFormData(prev => ({
+      ...prev,
+      burialDate: getCurrentDate(),
+      burialTime: getCurrentTime(),
+      deathDate: getCurrentMonthDay(),
+      deathYear: getCurrentYear()
+    }));
+  };
+
+  // Auto-refresh date and time every minute (optional)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshDateTimeFields();
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleChange = (field, value) => {
     // Special handling for numeric fields
@@ -71,18 +120,17 @@ const PamisaSaPatayScreen = () => {
     }
 
     // Special handling for date fields
-    if (field === 'burialDate' || field === 'deathDate') {
+    if (field === 'burialDate') {
       // Allow only digits and dashes
       value = value.replace(/[^0-9-]/g, '');
 
-      // Auto-format as YYYY-MM-DD for burialDate, or MM-DD for deathDate
-      if (field === 'burialDate') {
-        if (value.length === 4 && !value.includes('-')) value = value + '-';
-        else if (value.length === 7 && value.split('-').length === 2) value = value + '-';
-      } else if (field === 'deathDate') {
-        // simple auto dash after 2 digits -> MM-DD
-        if (value.length === 2 && !value.includes('-')) value = value + '-';
-      }
+      // Auto-format as YYYY-MM-DD
+      if (value.length === 4 && !value.includes('-')) value = value + '-';
+      else if (value.length === 7 && value.split('-').length === 2) value = value + '-';
+    } else if (field === 'deathDate') {
+      // Auto-format as MM-DD
+      value = value.replace(/[^0-9-]/g, '');
+      if (value.length === 2 && !value.includes('-')) value = value + '-';
     }
 
     // Special handling for time field
@@ -97,6 +145,12 @@ const PamisaSaPatayScreen = () => {
     }
 
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Add this function to handle "Use Current" button press
+  const handleUseCurrentDateTime = () => {
+    refreshDateTimeFields();
+    Alert.alert("Success", "Date and time fields have been updated to current values.");
   };
 
   const validateForm = () => {
@@ -142,7 +196,14 @@ const PamisaSaPatayScreen = () => {
       return;
     }
 
-    const emptyFields = Object.entries(formData).filter(([key, value]) => String(value).trim() === "");
+    const emptyFields = Object.entries(formData).filter(([key, value]) => {
+      // Skip checking these auto-filled fields if they're empty
+      const autoFields = ['burialDate', 'burialTime', 'deathDate', 'deathYear'];
+      if (autoFields.includes(key) && String(value).trim() === "") {
+        return false;
+      }
+      return String(value).trim() === "";
+    });
 
     if (emptyFields.length > 0) {
       Alert.alert("Incomplete Form", "Pakisigurado na lahat ng impormasyon ay napunan bago mag-submit.");
@@ -221,7 +282,13 @@ const PamisaSaPatayScreen = () => {
       return;
     }
 
-    const emptyFields = Object.entries(formData).filter(([key, value]) => String(value).trim() === "");
+    const emptyFields = Object.entries(formData).filter(([key, value]) => {
+      const autoFields = ['burialDate', 'burialTime', 'deathDate', 'deathYear'];
+      if (autoFields.includes(key) && String(value).trim() === "") {
+        return false;
+      }
+      return String(value).trim() === "";
+    });
 
     if (emptyFields.length > 0) {
       Alert.alert("Incomplete Form", "Pakisigurado na lahat ng impormasyon ay napunan bago mag-preview.");
@@ -316,6 +383,15 @@ const PamisaSaPatayScreen = () => {
           <View style={styles.headerContainer}>
             <Text style={styles.header}>Funeral Mass Application</Text>
             <Text style={styles.subHeader}>Pamisa sa Patay</Text>
+            
+            {/* Auto Date/Time Button */}
+            <TouchableOpacity 
+              style={styles.autoDateTimeButton}
+              onPress={handleUseCurrentDateTime}
+            >
+              <Ionicons name="refresh" size={16} color="white" />
+              <Text style={styles.autoDateTimeButtonText}>Update to Current Date/Time</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Form Sections */}
@@ -330,11 +406,19 @@ const PamisaSaPatayScreen = () => {
                         <Ionicons name={field.icon} size={16} color="#555" style={styles.fieldIcon} />
                       )}
                       <Text style={styles.label}>{field.label}:</Text>
+                      {/* Auto-filled indicator for date/time fields */}
+                      {['burialDate', 'burialTime', 'deathDate', 'deathYear'].includes(field.key) && (
+                        <View style={styles.autoBadge}>
+                          <Ionicons name="time" size={12} color="white" />
+                          <Text style={styles.autoBadgeText}>Auto</Text>
+                        </View>
+                      )}
                     </View>
                     <TextInput
                       style={[
                         styles.input, 
-                        field.multiline && styles.multilineInput
+                        field.multiline && styles.multilineInput,
+                        ['burialDate', 'burialTime', 'deathDate', 'deathYear'].includes(field.key) && styles.autoFieldInput
                       ]}
                       value={String(formData[field.key] ?? "")}
                       onChangeText={(text) => handleChange(field.key, text)}
@@ -380,7 +464,7 @@ const PamisaSaPatayScreen = () => {
         </ScrollView>
       </TouchableWithoutFeedback>
 
-      {/* Requirements Modal */}
+      {/* Requirements Modal - unchanged */}
       <Modal 
         visible={requirementsModalVisible} 
         transparent 
@@ -471,7 +555,7 @@ const PamisaSaPatayScreen = () => {
         </View>
       </Modal>
 
-      {/* Preview Modal */}
+      {/* Preview Modal - unchanged */}
       <Modal visible={previewModalVisible} animationType="fade" transparent>
         <View style={previewStyles.modalContainer}>
           <Animated.View style={[previewStyles.modalContent, { opacity: fadeAnim }]}>
@@ -524,7 +608,7 @@ const PamisaSaPatayScreen = () => {
   );
 };
 
-// styles below unchanged...
+// Updated styles to include new elements
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -549,6 +633,26 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#7f8c8d',
     fontStyle: 'italic',
+    marginBottom: 12,
+  },
+  autoDateTimeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#27ae60',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  autoDateTimeButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
+    marginLeft: 6,
   },
   section: {
     marginBottom: 24,
@@ -587,6 +691,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#2c3e50',
+    flex: 1,
+  },
+  autoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#3498db',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginLeft: 8,
+  },
+  autoBadgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginLeft: 2,
   },
   input: {
     borderWidth: 1,
@@ -595,6 +715,10 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: 'white',
     fontSize: 16,
+  },
+  autoFieldInput: {
+    backgroundColor: '#f8f9fa',
+    borderColor: '#3498db',
   },
   multilineInput: {
     minHeight: 100,
@@ -640,7 +764,9 @@ const styles = StyleSheet.create({
   },
 });
 
+// The rest of the styles (previewStyles and demandStyles) remain unchanged...
 const previewStyles = StyleSheet.create({
+  // ... (keep all the existing previewStyles the same)
   modalContainer: {
     flex: 1,
     justifyContent: "center",
@@ -781,6 +907,7 @@ const previewStyles = StyleSheet.create({
 });
 
 const demandStyles = StyleSheet.create({
+  // ... (keep all the existing demandStyles the same)
   modalContainer: {
     flex: 1,
     justifyContent: "center",

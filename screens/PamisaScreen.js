@@ -19,14 +19,14 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from "../AuthContext";
-
-
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const { width, height } = Dimensions.get('window');
 
 const PamisaScreen = ({ navigation }) => {
-    const { loggedInUser } = useAuth();  // makukuha mo na yung email dito
-    const [date, setDate] = useState('');
+    const { loggedInUser } = useAuth();
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
     const [donation, setDonation] = useState('');
     const [name, setName] = useState('');
     const [offeredBy, setOfferedBy] = useState('');
@@ -39,8 +39,42 @@ const PamisaScreen = ({ navigation }) => {
     const timeOptions = ['6AM', '8AM', '5:30PM','7:00PM'];
     const intentionOptions = ['Pasasalamat', 'Kaarawan', 'Kahilingan', 'Kagalingan', 'Kaluluwa'];
 
+    // Format date to MM/DD/YYYY
+    const formatDate = (date) => {
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${month}/${day}/${year}`;
+    };
+
+    const onDateChange = (event, date) => {
+        setShowDatePicker(false);
+        if (date) {
+            setSelectedDate(date);
+        }
+    };
+
+    // Validate donation input to accept only numbers and decimal
+    const handleDonationChange = (text) => {
+        // Remove any non-digit characters except decimal point
+        const cleaned = text.replace(/[^0-9.]/g, '');
+        
+        // Ensure only one decimal point
+        const parts = cleaned.split('.');
+        if (parts.length > 2) {
+            return;
+        }
+        
+        // If there's a decimal part, limit to 2 digits
+        if (parts.length === 2 && parts[1].length > 2) {
+            return;
+        }
+        
+        setDonation(cleaned);
+    };
+
     const openPreviewModal = () => {
-        if (!date || !selectedTime || !selectedIntention || !name || !offeredBy || !donation) {
+        if (!selectedDate || !selectedTime || !selectedIntention || !name || !offeredBy || !donation) {
             Alert.alert('Incomplete Form', 'Please fill out all fields before previewing.');
             return;
         }
@@ -63,7 +97,7 @@ const PamisaScreen = ({ navigation }) => {
     };
 
     const handleSubmit = () => {
-        if (!date || !selectedTime || !selectedIntention || !name || !offeredBy || !donation) {
+        if (!selectedDate || !selectedTime || !selectedIntention || !name || !offeredBy || !donation) {
             Alert.alert('Incomplete Form', 'Please fill out all fields before submitting.');
             return;
         }
@@ -73,13 +107,13 @@ const PamisaScreen = ({ navigation }) => {
    const handleConfirm = async () => {
         closePreviewModal();
         const formData = {
-            date,
+            date: formatDate(selectedDate),
             selectedTime,
             selectedIntention,
             name,
             offeredBy,
-            donation: parseFloat(donation),
-            email: loggedInUser?.email || "guest@example.com" // auto from login
+            donation: parseFloat(donation) || 0,
+            email: loggedInUser?.email || "guest@example.com"
         };
 
         try {
@@ -118,7 +152,7 @@ const PamisaScreen = ({ navigation }) => {
                     jsonResponse.message || "Ang iyong Pamisa ay naipasa na, mangyaring magpunta na lamang po sa Parish Office para sa payment.",
                     [{ text: "OK", onPress: () => navigation.navigate("MainTabs", { screen: "Dashboard" }) }]
                 );
-                setDate('');
+                setSelectedDate(new Date());
                 setDonation('');
                 setName('');
                 setOfferedBy('');
@@ -187,15 +221,27 @@ const PamisaScreen = ({ navigation }) => {
                     </View>
 
                     <View style={styles.formContainer}>
-                        {/* PETSA NG PAMISA */}
+                        {/* PETSA NG PAMISA - NOW WITH DATE PICKER */}
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>📅 Petsa ng Pamisa</Text>
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder="MM/DD/YYYY" 
-                                value={date} 
-                                onChangeText={setDate} 
-                            />
+                            <TouchableOpacity 
+                                style={styles.datePickerButton}
+                                onPress={() => setShowDatePicker(true)}
+                            >
+                                <Ionicons name="calendar" size={20} color="#4a6ea9" style={styles.dateIcon} />
+                                <Text style={styles.dateText}>
+                                    {formatDate(selectedDate)}
+                                </Text>
+                            </TouchableOpacity>
+                            {showDatePicker && (
+                                <DateTimePicker
+                                    value={selectedDate}
+                                    mode="date"
+                                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                    onChange={onDateChange}
+                                    minimumDate={new Date()}
+                                />
+                            )}
                         </View>
 
                         {/* ORAS NG PAMISA */}
@@ -268,7 +314,7 @@ const PamisaScreen = ({ navigation }) => {
                             />
                         </View>
 
-                        {/* DONASYON */}
+                        {/* DONASYON - NOW WITH NUMERIC VALIDATION */}
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>💰 Donasyon</Text>
                             <View style={styles.donationContainer}>
@@ -277,8 +323,9 @@ const PamisaScreen = ({ navigation }) => {
                                     style={[styles.input, styles.donationInput]} 
                                     placeholder="0.00"
                                     value={donation} 
-                                    onChangeText={setDonation} 
-                                    keyboardType="numeric" 
+                                    onChangeText={handleDonationChange} 
+                                    keyboardType="decimal-pad"
+                                    returnKeyType="done"
                                 />
                             </View>
                         </View>
@@ -404,7 +451,7 @@ const PamisaScreen = ({ navigation }) => {
 
                                 <ScrollView style={previewStyles.scrollContainer}>
                                     <PreviewSection title="Mass Details" icon="calendar">
-                                        <PreviewField label="Date" value={date} />
+                                        <PreviewField label="Date" value={formatDate(selectedDate)} />
                                         <PreviewField label="Time" value={selectedTime} />
                                         <PreviewField label="Intention" value={selectedIntention} />
                                     </PreviewSection>
@@ -492,6 +539,24 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         backgroundColor: '#fff',
         fontSize: 16,
+    },
+    // NEW STYLES FOR DATE PICKER
+    datePickerButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '100%',
+        padding: 15,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 10,
+        backgroundColor: '#fff',
+    },
+    dateIcon: {
+        marginRight: 10,
+    },
+    dateText: {
+        fontSize: 16,
+        color: '#2c3e50',
     },
     donationContainer: {
         flexDirection: 'row',

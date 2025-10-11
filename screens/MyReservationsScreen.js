@@ -27,7 +27,10 @@ const sacramentNames = {
   "pamisa_data": "Pamisa",
   "rl_data": "Religious Life",
   "sickcall_data": "Sick Call",
-  "wedding_data": "Wedding"
+  "wedding_data": "Wedding",
+  "request_baptismal": "Baptismal Certificate",
+  "request_firstcommunion": "First Communion Certificate",
+  "request_confirmation": "Confirmation Certificate"
 };
 
 const statusColors = {
@@ -215,7 +218,7 @@ const MyReservationsScreen = ({ route, navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Feather name="arrow-left" size={28} color="#0077b6" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Reservations</Text>
+        <Text style={styles.headerTitle}>My Reservations/Requests</Text>
         <View style={styles.headerPlaceholder} />
       </View>
 

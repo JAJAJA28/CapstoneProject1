@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,11 +19,12 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from "../AuthContext";
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const { width, height } = Dimensions.get("window");
 
 const ReligiousLifeFormScreen = ({ navigation }) => {
-    const { loggedInUser } = useAuth();  // makukuha mo na yung email dito
+    const { loggedInUser } = useAuth();
     const [formData, setFormData] = useState({
         fullName: '',
         birthDate: '',
@@ -36,14 +37,33 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
         spiritualExperience: '',
         familySupport: '',
         preferredReligiousOrder: '',
-        email: loggedInUser?.email || "guest@example.com" // auto from login
+        email: loggedInUser?.email || "guest@example.com"
     });
+
+    // Date picker state
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
     const [previewModalVisible, setPreviewModalVisible] = useState(false);
     const [requirementsModalVisible, setRequirementsModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
     const [activeField, setActiveField] = useState(null);
     const scrollViewRef = useRef();
     const fadeAnim = useRef(new Animated.Value(0)).current;
+
+    // Date handling functions
+    const formatDate = (date) => {
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${year}-${month}-${day}`;
+    };
+
+    const onDateChange = (event, selectedDate) => {
+        setShowDatePicker(false);
+        if (selectedDate) {
+            handleChange('birthDate', formatDate(selectedDate));
+        }
+    };
 
     const handleChange = (field, value) => {
         // Clear error when user starts typing
@@ -57,22 +77,6 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
             value = value.replace(/[^0-9]/g, '');
             // Limit to 11 characters
             if (value.length > 11) value = value.slice(0, 11);
-        }
-        
-        // Special handling for birth date to format as YYYY-MM-DD
-        if (field === 'birthDate') {
-            // Allow only digits and dashes
-            value = value.replace(/[^0-9-]/g, '');
-            
-            // Auto-format as YYYY-MM-DD
-            if (value.length === 4 && !value.includes('-')) {
-                value = value + '-';
-            } else if (value.length === 7 && value.split('-').length === 2) {
-                value = value + '-';
-            }
-            
-            // Limit to 10 characters (YYYY-MM-DD)
-            if (value.length > 10) value = value.slice(0, 10);
         }
         
         setFormData({ ...formData, [field]: value });
@@ -99,11 +103,6 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
         // Validate email format
         if (formData.email && !/^\S+@\S+\.\S+$/.test(formData.email)) {
             newErrors.email = "Please enter a valid email address";
-        }
-        
-        // Validate date format (YYYY-MM-DD)
-        if (formData.birthDate && !/^\d{4}-\d{2}-\d{2}$/.test(formData.birthDate)) {
-            newErrors.birthDate = "Please enter date in YYYY-MM-DD format";
         }
         
         setErrors(newErrors);
@@ -303,17 +302,15 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
                 return (
                     <View key={key} style={styles.inputContainer}>
                         <Text style={styles.label}>{label}</Text>
-                        <TextInput
-                            style={[styles.input, errors[key] ? styles.inputError : null]}
-                            value={formData[key]}
-                            onChangeText={(value) => handleChange(key, value)}
-                            placeholder="YYYY-MM-DD"
-                            keyboardType="numbers-and-punctuation"
-                            maxLength={10}
-                            returnKeyType="next"
-                            onSubmitEditing={() => focusNextField('gender')}
-                            onFocus={() => setActiveField(key)}
-                        />
+                        <TouchableOpacity
+                            style={[styles.dateInput, errors[key] ? styles.inputError : null]}
+                            onPress={() => setShowDatePicker(true)}
+                        >
+                            <Text style={formData.birthDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                {formData.birthDate || "Select your birth date"}
+                            </Text>
+                            <Ionicons name="calendar" size={20} color="#666" />
+                        </TouchableOpacity>
                         {errors[key] ? <Text style={styles.errorText}>{errors[key]}</Text> : null}
                     </View>
                 );
@@ -383,6 +380,16 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
                     ref={scrollViewRef}
                     keyboardShouldPersistTaps="handled"
                 >
+                    {/* Date Picker */}
+                    {showDatePicker && (
+                        <DateTimePicker
+                            value={new Date()}
+                            mode="date"
+                            display="default"
+                            onChange={onDateChange}
+                        />
+                    )}
+
                     <View style={styles.header}>
                         <Text style={styles.title}>RELIGIOUS LIFE INQUIRY FORM</Text>
                         <Text style={styles.subtitle}>
@@ -645,6 +652,24 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         fontSize: 16,
     },
+    dateInput: {
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 8,
+        padding: 14,
+        backgroundColor: 'white',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    dateInputText: {
+        fontSize: 16,
+        color: '#000',
+    },
+    dateInputPlaceholder: {
+        fontSize: 16,
+        color: '#999',
+    },
     inputError: {
         borderColor: '#e74c3c',
     },
@@ -705,6 +730,8 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
 });
+
+// ... (keep the existing previewStyles and demandStyles objects exactly as they are)
 
 const previewStyles = StyleSheet.create({
     modalContainer: {

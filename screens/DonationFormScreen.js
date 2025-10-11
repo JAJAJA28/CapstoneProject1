@@ -303,7 +303,7 @@ const DonationFormScreen = () => {
                   <ActivityIndicator color="white" size="small" />
                 ) : (
                   <>
-                    <Ionicons name="heart" size={18} color="#FFF" />
+                    <Ionicons name="" size={18} color="#FFF" />
                     <Text style={styles.submitButtonText}>Submit Donation</Text>
                   </>
                 )}

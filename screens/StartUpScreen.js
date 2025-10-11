@@ -87,12 +87,14 @@ export default function StartupScreen() {
           />
         </View>
 
-        {/* Tagline */}
-        <Text style={styles.appTagline}>
-          <Text style={styles.appTaglineBold}>
-            St. Raphael the Archangel Parish
-          </Text>
-        </Text>
+      {/* Tagline */}
+<Text style={styles.appTagline}>
+  <Text style={styles.appTaglineBold}>
+    The Official Mobile Application of{'\n'}
+  </Text>
+  St. Raphael the Archangel Parish
+</Text>
+
 
         {/* Create Account Button */}
         <TouchableOpacity
@@ -261,4 +263,5 @@ const styles = StyleSheet.create({
     fontSize: width * 0.04,
     fontWeight: "bold"
   },
+  
 });

@@ -15,13 +15,15 @@ import {
   Keyboard,
   Animated,
   Easing
-} from 'react-native'; import { Ionicons } from '@expo/vector-icons';
-  import { useAuth } from "../AuthContext";
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from "../AuthContext";
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const { width, height } = Dimensions.get("window");
 
 const SickCallFormScreen = ({ navigation }) => {
-  const { loggedInUser } = useAuth();  // makukuha mo na yung email dito
+  const { loggedInUser } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -32,10 +34,13 @@ const SickCallFormScreen = ({ navigation }) => {
     contactNumber: '',
     dateOfVisit: '',
     remarks: '',
-    email: loggedInUser?.email || "guest@example.com" // auto from login
+    email: loggedInUser?.email || "guest@example.com"
   });
 
-    // 🔄 Sync email kapag nagbago ang loggedInUser
+  // Date picker state
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // 🔄 Sync email kapag nagbago ang loggedInUser
   useEffect(() => {
     if (loggedInUser?.email) {
       setFormData((prev) => ({
@@ -45,151 +50,177 @@ const SickCallFormScreen = ({ navigation }) => {
     }
   }, [loggedInUser]);
     
-    const [requirementsModalVisible, setRequirementsModalVisible] = useState(false);
+  const [requirementsModalVisible, setRequirementsModalVisible] = useState(false);
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Date handling functions
+  const formatDate = (date) => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
+  };
+
+  const onDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      handleChange("dateOfVisit", formatDate(selectedDate));
+    }
+  };
 
   const handleChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
   };
-    const openPreviewModal = () => {
-        // Client-side validation: Check if all fields are filled
-        const isComplete = Object.values(formData).every(field => String(field).trim() !== '');
-        if (!isComplete) {
-            Alert.alert("Incomplete Form", "Please fill out all fields before previewing.");
-            return;
-        }
-        
-        setPreviewModalVisible(true);
-        Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 300,
-            easing: Easing.ease,
-            useNativeDriver: true,
-        }).start();
-    };
 
-    const closePreviewModal = () => {
-        Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: 200,
-            easing: Easing.ease,
-            useNativeDriver: true,
-        }).start(() => setPreviewModalVisible(false));
-    };
+  const openPreviewModal = () => {
+    // Client-side validation: Check if all fields are filled
+    const isComplete = Object.values(formData).every(field => String(field).trim() !== '');
+    if (!isComplete) {
+      Alert.alert("Incomplete Form", "Please fill out all fields before previewing.");
+      return;
+    }
+    
+    setPreviewModalVisible(true);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      easing: Easing.ease,
+      useNativeDriver: true,
+    }).start();
+  };
 
-   const handleSubmit = async () => {
-  try {
-    const serverUrl = "http://192.168.1.18/system/sickcall_submit.php";
+  const closePreviewModal = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 200,
+      easing: Easing.ease,
+      useNativeDriver: true,
+    }).start(() => setPreviewModalVisible(false));
+  };
 
-    const payload = {
-      ...formData,
-      email_norm: formData.email.toLowerCase().trim(),
-      createdAt: new Date().toISOString()
-    };
+  const handleSubmit = async () => {
+    try {
+      const serverUrl = "http://192.168.1.18/system/sickcall_submit.php";
 
-    console.log("Submitting sick call data:", payload);
+      const payload = {
+        ...formData,
+        email_norm: formData.email.toLowerCase().trim(),
+        createdAt: new Date().toISOString()
+      };
 
-    const response = await fetch(serverUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      console.log("Submitting sick call data:", payload);
 
-            const text = await response.text();
-            console.log("📦 Raw sick call submission response:", text);
+      const response = await fetch(serverUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-            if (!text) {
-                Alert.alert("Server Error", "Server returned an empty response for sick call form. This might indicate a PHP error.");
-                return;
-            }
+      const text = await response.text();
+      console.log("📦 Raw sick call submission response:", text);
 
-            let jsonResponse;
-            try {
-                jsonResponse = JSON.parse(text);
-            } catch (parseError) {
-                console.error("❌ JSON parsing error for sick call form:", parseError, "Raw text:", text);
-                Alert.alert("Server Error", "Received invalid data from server for sick call form. Check server logs. Details: " + text.substring(0, 100) + "...");
-                return;
-            }
+      if (!text) {
+        Alert.alert("Server Error", "Server returned an empty response for sick call form. This might indicate a PHP error.");
+        return;
+      }
 
-            if (jsonResponse.status === "success") {
-                Alert.alert(
-                    "Confirmed",
-                    jsonResponse.message || "Your Sick Call Request has been sent. Please wait for a text message from our Secretary for confirmation."
-                );
-                // Reset form data on successful submission
-                setFormData({
-                    name: '',
-                    address: '',
-                    age: '',
-                    status: '',
-                    sickness: '',
-                    contactPerson: '',
-                    contactNumber: '',
-                    dateOfVisit: '',
-                    remarks: '',
-                    email: loggedInUser?.email || ""  // ✅ include user email
-                });
-                navigation.goBack();
-            } else {
-                Alert.alert("Submission Failed", jsonResponse.message || "An unknown error occurred during submission.");
-                if (jsonResponse.details) {
-                    console.error("Server submission error details:", jsonResponse.details);
-                }
-            }
+      let jsonResponse;
+      try {
+        jsonResponse = JSON.parse(text);
+      } catch (parseError) {
+        console.error("❌ JSON parsing error for sick call form:", parseError, "Raw text:", text);
+        Alert.alert("Server Error", "Received invalid data from server for sick call form. Check server logs. Details: " + text.substring(0, 100) + "...");
+        return;
+      }
 
-        } catch (error) {
-            console.error("❌ Network or Server Error during sick call submission:", error);
-            Alert.alert(
-                "Network Error",
-                `Could not connect to the server or a server error occurred. Please check your internet connection or server status. Details: ${error.message}`
-            );
-        }
-    };
-
-    const handleCancel = () => {
+      if (jsonResponse.status === "success") {
         Alert.alert(
-            "Cancel Confirmation",
-            "Are you sure you want to cancel? Your input will be lost.",
-            [
-                { text: "No", style: "cancel" },
-                { text: "Yes", onPress: () => navigation.goBack() }
-            ]
+          "Confirmed",
+          jsonResponse.message || "Your Sick Call Request has been sent. Please wait for a text message from our Secretary for confirmation."
         );
-    };
+        // Reset form data on successful submission
+        setFormData({
+          name: '',
+          address: '',
+          age: '',
+          status: '',
+          sickness: '',
+          contactPerson: '',
+          contactNumber: '',
+          dateOfVisit: '',
+          remarks: '',
+          email: loggedInUser?.email || ""
+        });
+        navigation.goBack();
+      } else {
+        Alert.alert("Submission Failed", jsonResponse.message || "An unknown error occurred during submission.");
+        if (jsonResponse.details) {
+          console.error("Server submission error details:", jsonResponse.details);
+        }
+      }
 
-    const PreviewSection = ({ title, icon, children }) => (
-        <View style={previewStyles.section}>
-          <View style={previewStyles.sectionHeader}>
-            <Ionicons name={icon} size={20} color="#4a6ea9" />
-            <Text style={previewStyles.sectionTitle}>{title}</Text>
-          </View>
-          <View style={previewStyles.sectionContent}>
-            {children}
-          </View>
-        </View>
+    } catch (error) {
+      console.error("❌ Network or Server Error during sick call submission:", error);
+      Alert.alert(
+        "Network Error",
+        `Could not connect to the server or a server error occurred. Please check your internet connection or server status. Details: ${error.message}`
+      );
+    }
+  };
+
+  const handleCancel = () => {
+    Alert.alert(
+      "Cancel Confirmation",
+      "Are you sure you want to cancel? Your input will be lost.",
+      [
+        { text: "No", style: "cancel" },
+        { text: "Yes", onPress: () => navigation.goBack() }
+      ]
     );
+  };
 
-    const PreviewField = ({ label, value }) => (
-        <View style={previewStyles.field}>
-          <Text style={previewStyles.fieldLabel}>{label}:</Text>
-          <Text style={previewStyles.fieldValue}>{value || "Not provided"}</Text>
-        </View>
-    );
+  const PreviewSection = ({ title, icon, children }) => (
+    <View style={previewStyles.section}>
+      <View style={previewStyles.sectionHeader}>
+        <Ionicons name={icon} size={20} color="#4a6ea9" />
+        <Text style={previewStyles.sectionTitle}>{title}</Text>
+      </View>
+      <View style={previewStyles.sectionContent}>
+        {children}
+      </View>
+    </View>
+  );
 
-    const requirements = [
-        "Valid ID with picture",
-        "Medical certificate from your doctor",
-        "Recent medical test results (if available)",
-        "Proof of address (utility bill, etc.)",
-        "Contact information of your designated person"
-    ];
+  const PreviewField = ({ label, value }) => (
+    <View style={previewStyles.field}>
+      <Text style={previewStyles.fieldLabel}>{label}:</Text>
+      <Text style={previewStyles.fieldValue}>{value || "Not provided"}</Text>
+    </View>
+  );
+
+  const requirements = [
+    "Valid ID with picture",
+    "Medical certificate from your doctor",
+    "Recent medical test results (if available)",
+    "Proof of address (utility bill, etc.)",
+    "Contact information of your designated person"
+  ];
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView contentContainerStyle={styles.container}>
+          {/* Date Picker */}
+          {showDatePicker && (
+            <DateTimePicker
+              value={new Date()}
+              mode="date"
+              display="default"
+              onChange={onDateChange}
+            />
+          )}
+
           <View style={styles.header}>
             <Text style={styles.title}>SICK CALL FORM</Text>
           </View>
@@ -203,7 +234,6 @@ const SickCallFormScreen = ({ navigation }) => {
             { label: "SICKNESS:", field: "sickness", placeholder: "Describe the sickness or condition" },
             { label: "CONTACT PERSON:", field: "contactPerson", placeholder: "Enter contact person's name" },
             { label: "CONTACT NUMBER:", field: "contactNumber", placeholder: "Enter contact number", keyboardType: "phone-pad" },
-            { label: "DATE OF VISIT:", field: "dateOfVisit", placeholder: "Enter date of visit (MM/DD/YYYY)", keyboardType: "numbers-and-punctuation" },
           ].map((item, index) => (
             <View key={index} style={styles.inputContainer}>
               <Text style={styles.label}>{item.label}</Text>
@@ -216,6 +246,20 @@ const SickCallFormScreen = ({ navigation }) => {
               />
             </View>
           ))}
+          
+          {/* Date of Visit with Date Picker */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>DATE OF VISIT:</Text>
+            <TouchableOpacity
+              style={styles.dateInput}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text style={formData.dateOfVisit ? styles.dateInputText : styles.dateInputPlaceholder}>
+                {formData.dateOfVisit || "Enter date of visit (Tap to select)"}
+              </Text>
+              <Ionicons name="calendar" size={20} color="#666" />
+            </TouchableOpacity>
+          </View>
           
           {/* Remarks Field */}
           <View style={styles.inputContainer}>
@@ -427,6 +471,24 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     fontSize: 16,
   },
+  dateInput: {
+    borderWidth: 1, 
+    borderColor: '#ddd', 
+    borderRadius: 8, 
+    padding: 12,
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateInputText: {
+    fontSize: 16,
+    color: '#000',
+  },
+  dateInputPlaceholder: {
+    fontSize: 16,
+    color: '#999',
+  },
   textArea: {
     height: 100, 
     textAlignVertical: 'top'
@@ -470,6 +532,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
+// ... (keep the existing previewStyles and demandStyles objects exactly as they are)
 
 const previewStyles = StyleSheet.create({
   modalContainer: {

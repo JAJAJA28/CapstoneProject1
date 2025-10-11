@@ -31,6 +31,7 @@ import MyReservationsScreen from "./screens/MyReservationsScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import FormsMenuScreen from "./screens/FormsMenuScreen";
 import StartUpScreen from "./screens/StartUpScreen";
+import RequestCertificate from "./screens/RequestCertificate";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -105,6 +106,7 @@ const AuthWrapper = () => {
           <Stack.Screen name="OtherServicesForm" component={OtherServicesFormScreen} />
           <Stack.Screen name="WeddingForm" component={WeddingFormScreen} />
           <Stack.Screen name="DonationFormScreen" component={DonationFormScreen} />
+          <Stack.Screen name="RequestCertificate" component={RequestCertificate} />
 
           {/* Special Screens */}
           <Stack.Screen name="PamisaSaPatay" component={PamisaSaPatayScreen} />
