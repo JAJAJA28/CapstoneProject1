@@ -19,12 +19,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { AuthContext } from "../AuthContext";
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const { width, height } = Dimensions.get('window');
 const isIOS = Platform.OS === 'ios';
 
 const RequestCertificate = () => {
-  // ✅ CORRECT: Gamitin ang AuthContext para makuha ang logged in user
   const { loggedInUser } = useContext(AuthContext);
   const navigation = useNavigation();
   const colorScheme = useColorScheme();
@@ -32,18 +32,32 @@ const RequestCertificate = () => {
   
   const [selectedCertificate, setSelectedCertificate] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showPurposeDropdown, setShowPurposeDropdown] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  
   const [formData, setFormData] = useState({
     name: '',
     date: '',
     father: '',
     mother: '',
     purpose: '',
-    // ✅ AUTO-SET ang email mula sa loggedInUser
     email: loggedInUser?.email || ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ✅ Update formData kapag nagbago ang loggedInUser
+  // Common purposes for certificate requests
+  const purposeOptions = [
+    'Employment',
+    'School Requirement',
+    'Government ID',
+    'Scholarship',
+    'Visa Application',
+    'Marriage',
+    'Personal Record',
+    'Other'
+  ];
+
   React.useEffect(() => {
     if (loggedInUser?.email) {
       setFormData(prev => ({
@@ -86,7 +100,6 @@ const RequestCertificate = () => {
   ];
 
   const handleCertificateSelect = (certificate) => {
-    // ✅ Check muna kung naka-login
     if (!loggedInUser || !loggedInUser.email) {
       Alert.alert(
         'Login Required', 
@@ -98,14 +111,13 @@ const RequestCertificate = () => {
 
     setSelectedCertificate(certificate);
     setShowForm(true);
-    // ✅ Reset form data pero keep the email
     setFormData({
       name: '',
       date: '',
       father: '',
       mother: '',
       purpose: '',
-      email: loggedInUser.email // ✅ Keep the email from logged in user
+      email: loggedInUser.email
     });
   };
 
@@ -116,14 +128,44 @@ const RequestCertificate = () => {
     }));
   };
 
+  // Date Picker Functions
+  const handleDatePress = () => {
+    setShowDatePicker(true);
+  };
+
+  const onDateChange = (event, date) => {
+    setShowDatePicker(false);
+    
+    if (date) {
+      setSelectedDate(date);
+      // Format date as MM/DD/YY
+      const formattedDate = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear().toString().slice(-2)}`;
+      setFormData(prev => ({
+        ...prev,
+        date: formattedDate
+      }));
+    }
+  };
+
+  // Purpose Dropdown Functions
+  const handlePurposePress = () => {
+    setShowPurposeDropdown(true);
+  };
+
+  const handlePurposeSelect = (purpose) => {
+    setFormData(prev => ({
+      ...prev,
+      purpose: purpose
+    }));
+    setShowPurposeDropdown(false);
+  };
+
   const handleSubmit = async () => {
-    // ✅ Check ulit kung naka-login
     if (!loggedInUser || !loggedInUser.email) {
       Alert.alert('Login Required', 'Please login first to submit a request.');
       return;
     }
 
-    // Basic validation
     if (!formData.name || !formData.date || !formData.father || !formData.mother || !formData.purpose) {
       Alert.alert('Missing Information', 'Please fill out all fields before submitting.');
       return;
@@ -132,7 +174,6 @@ const RequestCertificate = () => {
     setIsSubmitting(true);
 
     try {
-      // Determine the API endpoint based on certificate type
       let apiUrl = '';
       switch (selectedCertificate.id) {
         case 'baptismal':
@@ -148,7 +189,7 @@ const RequestCertificate = () => {
           throw new Error('Invalid certificate type');
       }
 
-      console.log('Submitting with data:', formData); // For debugging
+      console.log('Submitting with data:', formData);
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -160,7 +201,7 @@ const RequestCertificate = () => {
 
       const result = await response.json();
 
-      console.log('Server response:', result); // For debugging
+      console.log('Server response:', result);
 
       if (response.ok && result.status === 'success') {
         Alert.alert(
@@ -173,7 +214,6 @@ const RequestCertificate = () => {
                 setShowForm(false);
                 setSelectedCertificate(null);
                 setIsSubmitting(false);
-                // Reset form but keep email
                 setFormData({
                   name: '',
                   date: '',
@@ -250,7 +290,6 @@ const RequestCertificate = () => {
               Please fill out the required information
             </Text>
             
-            {/* ✅ Display user email for confirmation */}
             <View style={styles.userInfoContainer}>
               <Text style={[styles.userInfoLabel, { color: secondaryTextColor }]}>
                 Requested by:
@@ -276,20 +315,31 @@ const RequestCertificate = () => {
               />
             </View>
 
+            {/* Date Picker Field */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: textColor }]}>Date of Sacrament *</Text>
-              <TextInput
+              <TouchableOpacity 
                 style={[styles.input, { 
                   backgroundColor: isDarkMode ? '#2A2A2A' : '#F8F9FA',
                   borderColor: borderColor,
-                  color: textColor
+                  justifyContent: 'center'
                 }]}
-                placeholder="MM/DD/YYYY"
-                placeholderTextColor={secondaryTextColor}
-                value={formData.date}
-                onChangeText={(text) => handleInputChange('date', text)}
-                editable={!isSubmitting}
-              />
+                onPress={handleDatePress}
+                disabled={isSubmitting}
+              >
+                <Text style={[ 
+                  { color: formData.date ? textColor : secondaryTextColor },
+                  styles.dateText
+                ]}>
+                  {formData.date || 'Select date (MM/DD/YY)'}
+                </Text>
+                <Ionicons 
+                  name="calendar" 
+                  size={20} 
+                  color={secondaryTextColor} 
+                  style={styles.dateIcon}
+                />
+              </TouchableOpacity>
             </View>
 
             <View style={styles.inputGroup}>
@@ -324,23 +374,30 @@ const RequestCertificate = () => {
               />
             </View>
 
+            {/* Purpose Dropdown Field */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: textColor }]}>Purpose *</Text>
-              <TextInput
-                style={[styles.textArea, { 
+              <TouchableOpacity 
+                style={[styles.input, { 
                   backgroundColor: isDarkMode ? '#2A2A2A' : '#F8F9FA',
                   borderColor: borderColor,
-                  color: textColor
+                  justifyContent: 'center'
                 }]}
-                placeholder="State the purpose for requesting this certificate"
-                placeholderTextColor={secondaryTextColor}
-                value={formData.purpose}
-                onChangeText={(text) => handleInputChange('purpose', text)}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-                editable={!isSubmitting}
-              />
+                onPress={handlePurposePress}
+                disabled={isSubmitting}
+              >
+                <Text style={[ 
+                  { color: formData.purpose ? textColor : secondaryTextColor }
+                ]}>
+                  {formData.purpose || 'Select purpose'}
+                </Text>
+                <Ionicons 
+                  name="chevron-down" 
+                  size={20} 
+                  color={secondaryTextColor} 
+                  style={styles.dropdownIcon}
+                />
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity 
@@ -372,6 +429,84 @@ const RequestCertificate = () => {
             )}
           </View>
         </ScrollView>
+
+        {/* Date Picker Modal */}
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={onDateChange}
+            maximumDate={new Date()}
+          />
+        )}
+
+        {/* Purpose Dropdown Modal */}
+        <Modal
+          visible={showPurposeDropdown}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowPurposeDropdown(false)}
+        >
+          <TouchableOpacity 
+            style={styles.dropdownOverlay}
+            activeOpacity={1}
+            onPress={() => setShowPurposeDropdown(false)}
+          >
+            <View style={[styles.dropdownContainer, { backgroundColor: cardBackground }]}>
+              <Text style={[styles.dropdownTitle, { color: textColor }]}>Select Purpose</Text>
+              <ScrollView style={styles.dropdownScroll}>
+                {purposeOptions.map((purpose, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.purposeOption,
+                      { 
+                        borderBottomColor: borderColor,
+                        backgroundColor: formData.purpose === purpose ? 
+                          (isDarkMode ? '#333' : '#F0F0F0') : 'transparent'
+                      }
+                    ]}
+                    onPress={() => handlePurposeSelect(purpose)}
+                  >
+                    <Text style={[styles.purposeOptionText, { color: textColor }]}>
+                      {purpose}
+                    </Text>
+                    {formData.purpose === purpose && (
+                      <Ionicons name="checkmark" size={20} color={primaryColor} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <TouchableOpacity 
+                style={[styles.customPurposeButton, { backgroundColor: primaryColor }]}
+                onPress={() => {
+                  setShowPurposeDropdown(false);
+                  // Optionally, you can add a custom purpose input here
+                  setTimeout(() => {
+                    Alert.prompt(
+                      'Custom Purpose',
+                      'Enter your purpose:',
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        { 
+                          text: 'OK', 
+                          onPress: (purpose) => {
+                            if (purpose) {
+                              handleInputChange('purpose', purpose);
+                            }
+                          }
+                        }
+                      ]
+                    );
+                  }, 300);
+                }}
+              >
+                <Text style={styles.customPurposeText}>Custom Purpose</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </SafeAreaView>
     </Modal>
   );
@@ -415,7 +550,6 @@ const RequestCertificate = () => {
             Select the type of certificate you need to request. Please make sure all information provided is accurate.
           </Text>
           
-          {/* ✅ Display current user info */}
           {loggedInUser && (
             <View style={[styles.currentUserContainer, { backgroundColor: cardBackground }]}>
               <Ionicons name="person-circle" size={20} color={primaryColor} />
@@ -613,6 +747,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateText: {
+    fontSize: 16,
+  },
+  dateIcon: {
+    position: 'absolute',
+    right: 16,
+  },
+  dropdownIcon: {
+    position: 'absolute',
+    right: 16,
   },
   textArea: {
     borderWidth: 1,
@@ -638,6 +786,50 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 14,
     fontStyle: 'italic',
+  },
+  // Dropdown Styles
+  dropdownOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  dropdownContainer: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '50%',
+  },
+  dropdownTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  dropdownScroll: {
+    maxHeight: 300,
+  },
+  purposeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+  },
+  purposeOptionText: {
+    fontSize: 16,
+    flex: 1,
+  },
+  customPurposeButton: {
+    paddingVertical: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  customPurposeText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

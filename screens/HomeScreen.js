@@ -14,13 +14,14 @@ import {
   StatusBar,
   useColorScheme,
   Linking,
-  Easing
+  Easing,
+  Alert
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Swiper from 'react-native-swiper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons, FontAwesome5, FontAwesome, MaterialIcons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
 const isSmallDevice = width < 375;
@@ -121,6 +122,58 @@ const HomeScreen = () => {
     ]).start();
   }, []);
 
+  // Social Media Links Functions
+  const openFacebook = () => {
+    const facebookUrl = 'https://www.facebook.com/SRAPMontalban';
+    Linking.openURL(facebookUrl).catch(err => 
+      Alert.alert('Error', 'Cannot open Facebook at this time.')
+    );
+  };
+
+  const openInstagram = () => {
+    const instagramUrl = 'https://www.instagram.com/srapmontalban/';
+    Linking.openURL(instagramUrl).catch(err => 
+      Alert.alert('Error', 'Cannot open Instagram at this time.')
+    );
+  };
+
+  const openEmail = () => {
+    const emailUrl = 'mailto:contact@srapmontalban.org';
+    Linking.openURL(emailUrl).catch(err => 
+      Alert.alert('Error', 'Cannot open email app at this time.')
+    );
+  };
+
+  const openYouTube = () => {
+    const youtubeUrl = 'https://www.youtube.com/channel/UChpLCaC68mcESRjAjYx3jUw';
+    Linking.openURL(youtubeUrl).catch(err => 
+      Alert.alert('Error', 'Cannot open YouTube at this time.')
+    );
+  };
+
+  // Get Directions Function
+  const openDirections = () => {
+    // Church coordinates (St. Raphael the Archangel Parish, Montalban, Rizal)
+    const latitude = '14.7167';
+    const longitude = '121.1167';
+    
+    // For Google Maps
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=driving`;
+    
+    // For Apple Maps
+    const appleMapsUrl = `http://maps.apple.com/?daddr=${latitude},${longitude}&dirflg=d`;
+    
+    // Try to open the appropriate maps app
+    Linking.openURL(Platform.OS === 'ios' ? appleMapsUrl : googleMapsUrl)
+      .catch(err => {
+        // Fallback to Google Maps in browser if the app fails to open
+        Linking.openURL(`https://www.google.com/maps/search/?api=1&query=St.+Raphael+the+Archangel+Parish+Montalban+Rizal`)
+          .catch(error => 
+            Alert.alert('Error', 'Cannot open maps application at this time.')
+          );
+      });
+  };
+
   const openPrayerModal = (type) => {
     let prayerData = { title: '', text: '' };
     switch (type) {
@@ -165,34 +218,47 @@ Help us follow Your path with courage and trust, and inspire us to act with love
   const primaryColor = isDarkMode ? '#7C3AED' : '#6c5ce7';
   const accentColor = isDarkMode ? '#A78BFA' : '#A6D1E6';
 
-  // Mass schedule data
+  // Mass schedule data - UPDATED
   const massSchedules = [
-    { day: 'Monday - Friday', times: ['6:00 AM', '6:00 PM (ElShaddai Thanksgiving Mass Every 3rd Week of the Month)' ] },
-    { day: 'Saturday', times: ['6:00 AM', '6:00 PM (Anticipated Mass in Chapel)'] },
-    { day: 'Sunday', times: ['6:00 AM', '8:00 AM', '5:30 pM', '7:00 PM'] },
+    {
+      category: 'Weekdays',
+      schedules: [
+        { day: 'Monday, Thursday, Friday & Saturday', times: ['6:00 AM Mass'] },
+        { day: 'Tuesday', times: ['6:00 PM Mass'] },
+        { day: 'Wednesday', times: ['6:00 AM Novena', '6:30 AM Mass'] },
+      ],
+    },
+    {
+      category: 'Sundays',
+      schedules: [
+        { place: 'PARISH', times: ['6:00 AM', '8:00 AM', '5:30 PM', '7:00 PM [English Mass]'] },
+        { place: 'ICC', times: ['11:00 AM', '4:00 PM [English Mass]'] },
+        { place: 'SILC', times: ['9:30 AM', '5:30 PM [English Mass]'] },
+        { place: 'SFAC', times: ['11:00 AM', '4:00 PM [English Mass]'] },
+      ],
+    },
   ];
 
- // Daily readings data about Tobit and St. Raphael
-const dailyReadings = {
-  date: 'October 2, 2025',
-  firstReading: {
-    title: 'Tobit 12:6-15',
-    text: 'Then Raphael called the two of them aside privately and said to them: “Bless God and acknowledge him in the presence of all the living... I am Raphael, one of the seven angels who stand ready and enter before the glory of the Lord.”'
-  },
-  psalm: {
-    title: 'Tobit 13:1-2, 6-8',
-    text: 'Blessed be God who lives forever, because his kingdom lasts throughout all ages... Acknowledge him before the nations, you children of Israel; for he has scattered you among them.'
-  },
-  secondReading: {
-    title: 'Tobit 3:16-17',
-    text: 'So the prayer of both of them was heard in the presence of the glory of the great God. Raphael was sent to heal both of them: to remove the white films from Tobit’s eyes, and to give Sarah to Tobias in marriage.'
-  },
-  gospel: {
-    title: 'John 5:1-4 (parallel to angel bringing healing)',
-    text: 'An angel of the Lord would come down at certain seasons into the pool and stir up the water; the one who stepped in was healed of whatever disease he had.'
-  }
-};
-
+  // Daily readings data about Tobit and St. Raphael
+  const dailyReadings = {
+    date: 'October 2, 2025',
+    firstReading: {
+      title: 'Tobit 12:6-15',
+      text: 'Then Raphael called the two of them aside privately and said to them: "Bless God and acknowledge him in the presence of all the living... I am Raphael, one of the seven angels who stand ready and enter before the glory of the Lord."'
+    },
+    psalm: {
+      title: 'Tobit 13:1-2, 6-8',
+      text: 'Blessed be God who lives forever, because his kingdom lasts throughout all ages... Acknowledge him before the nations, you children of Israel; for he has scattered you among them.'
+    },
+    secondReading: {
+      title: 'Tobit 3:16-17',
+      text: 'So the prayer of both of them was heard in the presence of the glory of the great God. Raphael was sent to heal both of them: to remove the white films from Tobit s eyes, and to give Sarah to Tobias in marriage.'
+    },
+    gospel: {
+      title: 'John 5:1-4 (parallel to angel bringing healing)',
+      text: 'An angel of the Lord would come down at certain seasons into the pool and stir up the water; the one who stepped in was healed of whatever disease he had.'
+    }
+  };
 
   // About church data
   const aboutChurch = {
@@ -252,53 +318,52 @@ const dailyReadings = {
         </View>
       </Animated.View>
 
-    
-<ScrollView 
-  contentContainerStyle={styles.scrollContent}
-  showsVerticalScrollIndicator={false}
-  nestedScrollEnabled={true}
-  bounces={false} // Add this to prevent bouncing in the parent ScrollView
->
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+        bounces={false}
+      >
         {/* Image Slider */}
-         <Animated.View 
-    style={[
-      styles.sliderContainer, 
-      { 
-        transform: [{ scale: scaleAnim }] 
-      }
-    ]}
-  >
-       
- <Swiper 
-      autoplay
-      loop
-      autoplayTimeout={4}
-      showsPagination
-      dotStyle={styles.dotStyle}
-      activeDotStyle={styles.activeDotStyle}
-      removeClippedSubviews={false}
-      scrollEnabled={true}
-      style={{ height: height * 0.28 }}
-      onIndexChanged={(index) => setActiveSlide(index)}
-      bounces={false} // Ensure this is set to false
-      scrollEventThrottle={200} // Add this for smoother scrolling
-      directionalLockEnabled={true} // Add this to prevent diagonal scrolling
-    >
-      {images.map((img, idx) => (
-        <View key={idx} style={styles.slide}>
-          <Image source={img} style={styles.slideImage} resizeMode="cover" />
-          <LinearGradient
-            colors={['transparent', 'transparent']}
-            style={styles.imageGradient}
-          />
-          <View style={styles.slideOverlay}>
-            <Text style={styles.slideText}>St. Raphael Parish</Text>
-            <Text style={styles.slideSubText}>Community in Faith</Text>
-          </View>
-        </View>
-      ))}
-    </Swiper>
-  </Animated.View>
+        <Animated.View 
+          style={[
+            styles.sliderContainer, 
+            { 
+              transform: [{ scale: scaleAnim }] 
+            }
+          ]}
+        >
+          <Swiper 
+            autoplay
+            loop
+            autoplayTimeout={4}
+            showsPagination
+            dotStyle={styles.dotStyle}
+            activeDotStyle={styles.activeDotStyle}
+            removeClippedSubviews={false}
+            scrollEnabled={true}
+            style={{ height: height * 0.28 }}
+            onIndexChanged={(index) => setActiveSlide(index)}
+            bounces={false}
+            scrollEventThrottle={200}
+            directionalLockEnabled={true}
+          >
+            {images.map((img, idx) => (
+              <View key={idx} style={styles.slide}>
+                <Image source={img} style={styles.slideImage} resizeMode="cover" />
+                <LinearGradient
+                  colors={['transparent', 'transparent']}
+                  style={styles.imageGradient}
+                />
+                <View style={styles.slideOverlay}>
+                  <Text style={styles.slideText}>St. Raphael Parish</Text>
+                  <Text style={styles.slideSubText}>Community in Faith</Text>
+                </View>
+              </View>
+            ))}
+          </Swiper>
+        </Animated.View>
+
         {/* PRAY / HEAL / HOPE Animation */}
         <Animated.View 
           style={[
@@ -338,7 +403,7 @@ const dailyReadings = {
             <Text style={styles.donationButtonText}>Make a Donation</Text>
           </TouchableOpacity>
 
-           {/* Request Certificate Button - ADD THIS */}
+          {/* Request Certificate Button */}
           <TouchableOpacity 
             style={[styles.certificateButton]} 
             onPress={() => navigation.navigate('RequestCertificate')}
@@ -353,7 +418,6 @@ const dailyReadings = {
             <MaterialCommunityIcons name="certificate" size={20} color="#FFF" />
             <Text style={styles.donationButtonText}>Request Certificate</Text>
           </TouchableOpacity>
-       
         </Animated.View>
 
         {/* Prayer Buttons Grid */}
@@ -411,6 +475,8 @@ const dailyReadings = {
           ]}
         >
           <Text style={[styles.sectionTitle, { color: textColor }]}>Quick Links</Text>
+          
+          {/* First Row */}
           <View style={styles.quickLinksRow}>
             <QuickLink 
               icon="calendar-clock" 
@@ -433,13 +499,20 @@ const dailyReadings = {
               isDarkMode={isDarkMode}
               color={primaryColor}
             />
+            <QuickLink 
+              icon="map-marker" 
+              title="Get Directions" 
+              onPress={openDirections}
+              isDarkMode={isDarkMode}
+              color="#10b981"
+            />
           </View>
         </Animated.View>
 
-        {/* Upcoming Events Section */}
+        {/* Parish Confirmed Links Section */}
         <Animated.View 
           style={[
-            styles.eventsContainer, 
+            styles.socialLinksContainer, 
             { 
               backgroundColor: cardBackground,
               transform: [{ translateY: slideAnim }],
@@ -448,27 +521,38 @@ const dailyReadings = {
           ]}
         >
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: textColor }]}>Parish Important Events</Text>
+            <Text style={[styles.sectionTitle, { color: textColor }]}>Parish Confirmed Links</Text>
           </View>
-          <View style={styles.eventItem}>
-            <View style={[styles.eventDate, { backgroundColor: isDarkMode ? 'rgba(124, 58, 237, 0.2)' : 'rgba(108, 92, 231, 0.1)' }]}>
-              <Text style={[styles.eventDay, { color: primaryColor }]}>29</Text>
-              <Text style={[styles.eventMonth, { color: primaryColor }]}>SEP</Text>
-            </View>
-            <View style={styles.eventDetails}>
-              <Text style={[styles.eventTitle, { color: textColor }]}>Patron Feast Day Celebration</Text>
-              <Text style={[styles.eventTime, { color: secondaryTextColor }]}>Dakilang Kapistahan ng mga Arkanghel</Text>
-            </View>
-          </View>
-          <View style={styles.eventItem}>
-            <View style={[styles.eventDate, { backgroundColor: isDarkMode ? 'rgba(124, 58, 237, 0.2)' : 'rgba(108, 92, 231, 0.1)' }]}>
-              <Text style={[styles.eventDay, { color: primaryColor }]}>23</Text>
-              <Text style={[styles.eventMonth, { color: primaryColor }]}>OCT</Text>
-            </View>
-            <View style={styles.eventDetails}>
-              <Text style={[styles.eventTitle, { color: textColor }]}>Parish Foundation Day</Text>
-              <Text style={[styles.eventTime, { color: secondaryTextColor }]}>Parish Established</Text>
-            </View>
+          
+          <View style={styles.socialLinksGrid}>
+            <SocialLink 
+              icon="facebook" 
+              title="Facebook" 
+              onPress={openFacebook}
+              isDarkMode={isDarkMode}
+              color="#1877F2"
+            />
+            <SocialLink 
+              icon="instagram" 
+              title="Instagram" 
+              onPress={openInstagram}
+              isDarkMode={isDarkMode}
+              color="#E4405F"
+            />
+            <SocialLink 
+              icon="email" 
+              title="Email" 
+              onPress={openEmail}
+              isDarkMode={isDarkMode}
+              color="#EA4335"
+            />
+            <SocialLink 
+              icon="youtube" 
+              title="YouTube" 
+              onPress={openYouTube}
+              isDarkMode={isDarkMode}
+              color="#FF0000"
+            />
           </View>
         </Animated.View>
       </ScrollView>
@@ -495,7 +579,7 @@ const dailyReadings = {
         </BlurView>
       </Modal>
 
-      {/* Mass Schedule Modal */}
+      {/* Mass Schedule Modal - UPDATED */}
       <Modal visible={massModalVisible} transparent animationType="slide">
         <BlurView intensity={90} tint={isDarkMode ? "dark" : "light"} style={StyleSheet.absoluteFill}>
           <View style={styles.modalOverlay}>
@@ -504,16 +588,30 @@ const dailyReadings = {
                 <Text style={[styles.modalTitle, { color: textColor }]}>Mass Schedule</Text>
                 <View style={[styles.divider, { backgroundColor: isDarkMode ? '#333' : '#EEE' }]} />
                 
-                {massSchedules.map((schedule, index) => (
-                  <View key={index} style={styles.scheduleItem}>
-                    <Text style={[styles.scheduleDay, { color: textColor }]}>{schedule.day}</Text>
-                    <View style={styles.timesContainer}>
-                      {schedule.times.map((time, timeIndex) => (
-                        <View key={timeIndex} style={[styles.timeChip, { backgroundColor: isDarkMode ? 'rgba(124, 58, 237, 0.2)' : 'rgba(108, 92, 231, 0.1)' }]}>
-                          <Text style={[styles.timeText, { color: primaryColor }]}>{time}</Text>
+                {massSchedules.map((category, categoryIndex) => (
+                  <View key={categoryIndex} style={styles.scheduleCategory}>
+                    <Text style={[styles.categoryTitle, { color: primaryColor }]}>
+                      {category.category}
+                    </Text>
+                    
+                    {category.schedules.map((schedule, scheduleIndex) => (
+                      <View key={scheduleIndex} style={styles.scheduleItem}>
+                        <Text style={[styles.scheduleDay, { color: textColor }]}>
+                          {schedule.day || schedule.place}
+                        </Text>
+                        <View style={styles.timesContainer}>
+                          {schedule.times.map((time, timeIndex) => (
+                            <View key={timeIndex} style={[styles.timeChip, { backgroundColor: isDarkMode ? 'rgba(124, 58, 237, 0.2)' : 'rgba(108, 92, 231, 0.1)' }]}>
+                              <Text style={[styles.timeText, { color: primaryColor }]}>{time}</Text>
+                            </View>
+                          ))}
                         </View>
-                      ))}
-                    </View>
+                      </View>
+                    ))}
+                    
+                    {categoryIndex < massSchedules.length - 1 && (
+                      <View style={[styles.categoryDivider, { backgroundColor: borderColor }]} />
+                    )}
                   </View>
                 ))}
                 
@@ -680,6 +778,24 @@ const QuickLink = ({ icon, title, onPress, isDarkMode, color }) => (
   </TouchableOpacity>
 );
 
+// Social Link Component
+const SocialLink = ({ icon, title, onPress, isDarkMode, color }) => (
+  <TouchableOpacity 
+    style={[styles.socialLink, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(108, 92, 231, 0.1)' }]} 
+    onPress={onPress}
+    activeOpacity={0.7}
+  >
+    <MaterialCommunityIcons 
+      name={icon} 
+      size={28} 
+      color={color} 
+    />
+    <Text style={[styles.socialLinkText, { color: isDarkMode ? '#FFF' : color }]}>
+      {title}
+    </Text>
+  </TouchableOpacity>
+);
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -712,21 +828,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-logo: { 
-  width: width * 0.18,
-  height: width * 0.18,
-  resizeMode: "contain",
-  borderRadius: (width * 0.22) / 1, // gawin circle
-  backgroundColor: "#fff", // para hindi butas
-  justifyContent: "center",
-  alignItems: "center",
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 3.84,
-},
-
-
+  logo: { 
+    width: width * 0.18,
+    height: width * 0.18,
+    resizeMode: "contain",
+    borderRadius: (width * 0.22) / 1,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+  },
   headerTextContainer: {
     marginLeft: 10,
     flex: 1,
@@ -779,12 +893,11 @@ logo: {
     shadowRadius: 8,
     elevation: 6,
   },
-// Update your slideImage style to ensure consistent rendering:
-slideImage: {
-  width: '100%',
-  height: '100%',
-  borderRadius: 20, // Add this to match the container
-},
+  slideImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
+  },
   imageGradient: {
     position: 'absolute',
     left: 0,
@@ -940,7 +1053,7 @@ slideImage: {
     alignItems: 'center',
     padding: 16,
     borderRadius: 16,
-    width: (width - 90) / 3,
+    width: (width - 110) / 4,
   },
   quickLinkText: {
     marginTop: 8,
@@ -948,7 +1061,8 @@ slideImage: {
     fontWeight: '600',
     textAlign: 'center',
   },
-  eventsContainer: {
+  // Social Links Section Styles
+  socialLinksContainer: {
     marginHorizontal: 20,
     marginBottom: 20,
     padding: 20,
@@ -958,48 +1072,29 @@ slideImage: {
     shadowRadius: 6,
     elevation: 4,
   },
+  socialLinksGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  socialLink: {
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    width: (width - 90) / 2,
+    marginBottom: 15,
+  },
+  socialLinkText: {
+    marginTop: 8,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 15,
-  },
-  seeAllText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  eventItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  eventDate: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  eventDay: {
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  eventMonth: {
-    fontSize: 12,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  eventDetails: {
-    flex: 1,
-  },
-  eventTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  eventTime: {
-    fontSize: 13,
   },
   modalOverlay: {
     flex: 1,
@@ -1052,14 +1147,27 @@ slideImage: {
     fontWeight: '700',
     fontSize: 16,
   },
-  // Mass Schedule Modal Styles
-  scheduleItem: {
+  // Mass Schedule Modal Styles - UPDATED
+  scheduleCategory: {
     marginBottom: 20,
+  },
+  categoryTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  categoryDivider: {
+    height: 1,
+    marginVertical: 20,
+  },
+  scheduleItem: {
+    marginBottom: 15,
   },
   scheduleDay: {
     fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 10,
+    fontWeight: '600',
+    marginBottom: 8,
   },
   timesContainer: {
     flexDirection: 'row',
@@ -1070,11 +1178,11 @@ slideImage: {
     paddingHorizontal: 14,
     borderRadius: 20,
     marginRight: 10,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   timeText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   noteContainer: {
     marginTop: 15,
@@ -1134,22 +1242,21 @@ slideImage: {
   contactText: {
     fontSize: 15,
   },
-  // Add this to the styles object in HomeScreen.js
-certificateButton: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  paddingVertical: 16,
-  paddingHorizontal: 24,
-  borderRadius: 14,
-  overflow: 'hidden',
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 6 },
-  shadowOpacity: 0.2,
-  shadowRadius: 8,
-  elevation: 6,
-  marginTop: 12,
-},
+  certificateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 14,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+    marginTop: 12,
+  },
 });
 
 export default HomeScreen;

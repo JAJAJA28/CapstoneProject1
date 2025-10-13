@@ -12,7 +12,8 @@ import {
   SafeAreaView,
   Alert,
   ActivityIndicator,
-  Platform
+  Platform,
+  RefreshControl
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons, Feather, Ionicons } from '@expo/vector-icons';
@@ -28,6 +29,10 @@ const ProfileScreen = ({ navigation }) => {
   const profileScaleAnim = useRef(new Animated.Value(0.9)).current;
   const [isLoading, setIsLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [notificationPulse] = useState(new Animated.Value(1));
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshSpinAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
     Animated.parallel([
@@ -48,6 +53,172 @@ const ProfileScreen = ({ navigation }) => {
       })
     ]).start();
   }, []);
+
+  // Fetch unread notifications
+  useEffect(() => {
+    if (loggedInUser?.email) {
+      fetchUnreadNotifications();
+      // Set up interval to check for new notifications every 30 seconds
+      const interval = setInterval(fetchUnreadNotifications, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [loggedInUser?.email]);
+
+  // Pulse animation for notification bell
+  useEffect(() => {
+    if (unreadNotifications > 0) {
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(notificationPulse, {
+            toValue: 1.2,
+            duration: 1000,
+            useNativeDriver: true
+          }),
+          Animated.timing(notificationPulse, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true
+          })
+        ])
+      );
+      pulse.start();
+      return () => pulse.stop();
+    }
+  }, [unreadNotifications]);
+
+  // Spin animation for refresh icon
+  const startRefreshAnimation = () => {
+    refreshSpinAnim.setValue(0);
+    Animated.timing(refreshSpinAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true
+    }).start();
+  };
+
+  const spin = refreshSpinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg']
+  });
+
+  const fetchUnreadNotifications = async () => {
+    try {
+      if (!loggedInUser?.email) {
+        console.log('No user email available');
+        return;
+      }
+
+      const response = await fetch(
+        `http://192.168.1.18/system/get_unread_notifications.php?email=${encodeURIComponent(loggedInUser.email)}`
+      );
+      
+      // First, check if response is OK
+      if (!response.ok) {
+        console.error('HTTP error:', response.status);
+        return;
+      }
+
+      const text = await response.text();
+      console.log('Raw response:', text); // Debug log
+
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError, 'Response text:', text);
+        return;
+      }
+      
+      if (result.status === 'success') {
+        setUnreadNotifications(result.unread_count);
+      } else {
+        console.error('API error:', result.message);
+      }
+    } catch (error) {
+      console.error('Network error fetching notifications:', error);
+    }
+  };
+
+  const refreshUserData = async () => {
+    try {
+      if (!loggedInUser?.email) return;
+
+      const updatedUserData = await fetchUserData(loggedInUser.email);
+      if (updatedUserData) {
+        setLoggedInUser(updatedUserData);
+      }
+      
+      await fetchUnreadNotifications();
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    startRefreshAnimation();
+    
+    try {
+      await refreshUserData();
+    } catch (error) {
+      console.error('Refresh error:', error);
+    } finally {
+      setTimeout(() => {
+        setRefreshing(false);
+      }, 500);
+    }
+  };
+
+  const handleManualRefresh = () => {
+    if (!refreshing) {
+      onRefresh();
+    }
+  };
+
+  const markNotificationsAsRead = async () => {
+    try {
+      if (!loggedInUser?.email) {
+        console.log('No user email available');
+        return;
+      }
+
+      const response = await fetch(
+        'http://192.168.1.18/system/mark_notifications_read.php',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: loggedInUser.email })
+        }
+      );
+
+      // First, check if response is OK
+      if (!response.ok) {
+        console.error('HTTP error:', response.status);
+        return;
+      }
+
+      const text = await response.text();
+      console.log('Mark read raw response:', text); // Debug log
+
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError, 'Response text:', text);
+        return;
+      }
+
+      if (result.status === 'success') {
+        setUnreadNotifications(0);
+      } else {
+        console.error('API error:', result.message);
+      }
+    } catch (error) {
+      console.error('Network error marking notifications as read:', error);
+    }
+  };
 
   const showImagePickerOptions = () => {
     Alert.alert(
@@ -132,10 +303,12 @@ const ProfileScreen = ({ navigation }) => {
 
     const formData = new FormData();
     formData.append("email", email);
+    
+    // FIXED: Use string concatenation instead of template literals
     formData.append("photo", {
       uri: imageAsset.uri,
-      type: `image/${fileType}`,
-      name: `profile.${fileType}`,
+      type: "image/" + fileType, // Changed from template literal
+      name: "profile." + fileType, // Changed from template literal
     });
 
     try {
@@ -159,6 +332,12 @@ const ProfileScreen = ({ navigation }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleNotificationsPress = () => {
+    // Mark notifications as read when user views them
+    markNotificationsAsRead();
+    navigation.navigate("MyReservations", { userEmail: loggedInUser.email });
   };
 
   const handleLogout = () => {
@@ -199,11 +378,53 @@ const ProfileScreen = ({ navigation }) => {
 
       <View style={styles.header}>
         <Text style={styles.title}>My Profile</Text>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity 
+            style={[styles.refreshButton, refreshing && styles.refreshButtonDisabled]}
+            onPress={handleManualRefresh}
+            disabled={refreshing}
+          >
+            <Animated.View style={{ transform: [{ rotate: spin }] }}>
+              <Ionicons 
+                name="refresh-circle" 
+                size={32} 
+                color={refreshing ? "#ccc" : "#2d3748"} 
+              />
+            </Animated.View>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.notificationButton}
+            onPress={handleNotificationsPress}
+          >
+            <Animated.View style={{ transform: [{ scale: notificationPulse }] }}>
+              <Ionicons name="notifications" size={24} color="#2d3748" />
+            </Animated.View>
+            {unreadNotifications > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationCount}>
+                  {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView 
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#FFE259']}
+            progressBackgroundColor="#ffffff"
+            tintColor="#FFE259"
+            title="Refreshing..."
+            titleColor="#2d3748"
+          />
+        }
       >
         <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
           {/* Profile Card */}
@@ -219,7 +440,7 @@ const ProfileScreen = ({ navigation }) => {
                         ? { uri: selectedImage.uri }
                         : loggedInUser?.profilePicture
                           ? { uri: `http://192.168.1.18/system/uploads/${loggedInUser.profilePicture}?t=${new Date().getTime()}` }
-                          : require('../assets/AGNUS3.png')
+                          : require('../assets/DEFAULT.png')
                     }
                     style={styles.profileImage}
                   />
@@ -241,6 +462,16 @@ const ProfileScreen = ({ navigation }) => {
                 <Text style={styles.role}>Parishioner</Text>
               </View>
             </View>
+
+            {/* Notification Alert */}
+            {unreadNotifications > 0 && (
+              <View style={styles.notificationAlert}>
+                <Ionicons name="information-circle" size={16} color="#fff" />
+                <Text style={styles.notificationAlertText}>
+                  You have {unreadNotifications} new status update{unreadNotifications > 1 ? 's' : ''}
+                </Text>
+              </View>
+            )}
           </Animated.View>
 
           {/* Account Details Card */}
@@ -291,18 +522,17 @@ const ProfileScreen = ({ navigation }) => {
           }]}>
             <TouchableOpacity
               style={styles.reservationButton}
-              onPress={() => {
-                if (loggedInUser && loggedInUser.email) {
-                  navigation.navigate("MyReservations", { userEmail: loggedInUser.email });
-                } else {
-                  Alert.alert("Error", "No logged in user found.");
-                }
-              }}
+              onPress={handleNotificationsPress}
               activeOpacity={0.7}
             >
               <View style={styles.reservationButtonContent}>
                 <Ionicons name="calendar" size={22} color="#fff" />
                 <Text style={styles.reservationText}>View My Reservations</Text>
+                {unreadNotifications > 0 && (
+                  <View style={styles.reservationBadge}>
+                    <Text style={styles.reservationBadgeText}>{unreadNotifications}</Text>
+                  </View>
+                )}
               </View>
               <Ionicons name="chevron-forward" size={20} color="#fff" />
             </TouchableOpacity>
@@ -368,11 +598,47 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 50,
     paddingBottom: 15,
   },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   title: {
     fontSize: 26,
     fontWeight: "700",
     color: "black",
     letterSpacing: 0.5,
+  },
+  refreshButton: {
+    padding: 4,
+    marginRight: 8,
+    borderRadius: 20,
+  },
+  refreshButtonDisabled: {
+    opacity: 0.5,
+  },
+  notificationButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: '#e74c3c',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  notificationCount: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -429,7 +695,7 @@ const styles = StyleSheet.create({
   },
   profileInfo: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   name: {
     fontSize: 24,
@@ -451,6 +717,21 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: '600',
     marginLeft: 4,
+  },
+  notificationAlert: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#3498db',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  notificationAlertText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 6,
   },
   detailsCard: {
     borderRadius: 20,
@@ -530,12 +811,31 @@ const styles = StyleSheet.create({
   reservationButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    position: 'relative',
   },
   reservationText: {
     fontSize: 15,
     fontWeight: "600",
     color: "#fff",
     marginLeft: 10,
+  },
+  reservationBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#e74c3c',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#6c5ce7',
+  },
+  reservationBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   bottomActions: {
     position: "absolute",

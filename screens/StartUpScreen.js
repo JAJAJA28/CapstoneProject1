@@ -1,5 +1,5 @@
 // StartupScreen.js
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,35 +8,121 @@ import {
   Image,
   Platform,
   Dimensions,
-  Animated
+  Animated,
+  Modal,
+  ScrollView
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get("window");
 
 export default function StartupScreen() {
   const navigation = useNavigation();
+  const [showWarning, setShowWarning] = useState(true);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
+  const warningScaleAnim = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      })
-    ]).start();
-  }, []);
+    if (!showWarning) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: true,
+        })
+      ]).start();
+    }
+  }, [showWarning]);
+
+  const handleContinue = () => {
+    setShowWarning(false);
+  };
+
+  const renderWarningModal = () => (
+    <Modal
+      visible={showWarning}
+      animationType="fade"
+      transparent={true}
+      statusBarTranslucent={true}
+    >
+      <View style={styles.warningModalContainer}>
+        <Animated.View 
+          style={[
+            styles.warningModal,
+            {
+              transform: [{ scale: warningScaleAnim }]
+            }
+          ]}
+        >
+          <View style={styles.warningHeader}>
+            <Ionicons name="warning" size={40} color="#FFA726" />
+            <Text style={styles.warningTitle}>IMPORTANT NOTICE</Text>
+          </View>
+
+          <ScrollView style={styles.warningContent}>
+            <Text style={styles.warningText}>
+              Ang Mobile Application na ito ay para lamang sa PAROKYA NG SAN RAFAEL ARKANGHEL, MONTALBAN RIZAL, at sa mga nasasakupang lugar ng Parokya.
+            </Text>
+            
+            <View style={styles.warningNote}>
+              <Text style={styles.warningNoteText}>
+                This mobile application is exclusively for the use of St. Raphael the Archangel Parish, Montalban Rizal, and its covered areas.
+              </Text>
+            </View>
+
+            <View style={styles.featuresList}>
+              <Text style={styles.featuresTitle}>Available Features:</Text>
+              <View style={styles.featureItem}>
+                <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+                <Text style={styles.featureText}>Certificate Requests</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+                <Text style={styles.featureText}>Mass Schedules</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+                <Text style={styles.featureText}>Parish Announcements</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+                <Text style={styles.featureText}>Religious Resources</Text>
+              </View>
+            </View>
+          </ScrollView>
+
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={handleContinue}
+          >
+            <Text style={styles.continueButtonText}>I UNDERSTAND - CONTINUE</Text>
+          </TouchableOpacity>
+
+          {/* Footer */}
+          <View style={styles.warningFooter}>
+            <Text style={styles.footerText}>
+              Bachelor of Science in Computer Technology @SRAP 2025
+            </Text>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+
+  if (showWarning) {
+    return renderWarningModal();
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -87,14 +173,13 @@ export default function StartupScreen() {
           />
         </View>
 
-      {/* Tagline */}
-<Text style={styles.appTagline}>
-  <Text style={styles.appTaglineBold}>
-    The Official Mobile Application of{'\n'}
-  </Text>
-  St. Raphael the Archangel Parish
-</Text>
-
+        {/* Tagline */}
+        <Text style={styles.appTagline}>
+          <Text style={styles.appTaglineBold}>
+            The Official Mobile Application of{'\n'}
+          </Text>
+          St. Raphael the Archangel Parish
+        </Text>
 
         {/* Create Account Button */}
         <TouchableOpacity
@@ -114,7 +199,12 @@ export default function StartupScreen() {
           </Text>
         </TouchableOpacity>
 
-       
+        {/* Footer in Main Screen */}
+        <View style={styles.mainFooter}>
+          <Text style={styles.mainFooterText}>
+            Bachelor of Science in Computer Technology @SRAP 2025
+          </Text>
+        </View>
 
         <StatusBar style="auto" />
       </Animated.View>
@@ -263,5 +353,126 @@ const styles = StyleSheet.create({
     fontSize: width * 0.04,
     fontWeight: "bold"
   },
-  
+  mainFooter: {
+    position: 'absolute',
+    bottom: height * 0.03,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  mainFooterText: {
+    fontSize: width * 0.03,
+    color: '#636e72',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  // Warning Modal Styles
+  warningModalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  warningModal: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 25,
+    width: '90%',
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  warningHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  warningTitle: {
+    fontSize: width * 0.05,
+    fontWeight: 'bold',
+    color: '#D84315',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  warningContent: {
+    flexGrow: 0,
+  },
+  warningText: {
+    fontSize: width * 0.04,
+    textAlign: 'center',
+    lineHeight: 24,
+    color: '#333',
+    marginBottom: 15,
+    fontWeight: '600',
+  },
+  warningNote: {
+    backgroundColor: '#FFF3E0',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FFA726',
+  },
+  warningNoteText: {
+    fontSize: width * 0.035,
+    color: '#E65100',
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  featuresList: {
+    marginBottom: 20,
+  },
+  featuresTitle: {
+    fontSize: width * 0.04,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingLeft: 5,
+  },
+  featureText: {
+    fontSize: width * 0.035,
+    color: '#333',
+    marginLeft: 10,
+  },
+  continueButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 10,
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  continueButtonText: {
+    color: 'white',
+    fontSize: width * 0.04,
+    fontWeight: 'bold',
+  },
+  warningFooter: {
+    marginTop: 20,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: width * 0.03,
+    color: '#757575',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
 });

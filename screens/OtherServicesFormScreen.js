@@ -241,13 +241,13 @@ const OtherServicesScreenForm = ({ navigation }) => {
               <Text style={[styles.footerTitle, { color: isDarkMode ? '#FFF' : '#2c3e50' }]}>Need assistance?</Text>
             </View>
             <Text style={[styles.footerText, { color: isDarkMode ? '#CCCCCC' : '#666' }]}>
-              Contact us at srapmontalban@gmail.com or call (123) 456-7890
+              Contact us at contact@srapmontalban.org or call 284750837
             </Text>
             <Text style={[styles.footerHours, { color: isDarkMode ? '#CCCCCC' : '#666' }]}>
               Monday: Closed
             </Text>
             <Text style={[styles.footerHours, { color: isDarkMode ? '#CCCCCC' : '#666' }]}>
-              Office hours: Tuesday-Friday 8:00 AM - 5:00 PM
+              Office hours: Tuesday-Saturday 8:00 AM - 5:00 PM
             </Text>
           </Animated.View>
         </Animated.View>
