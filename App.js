@@ -116,12 +116,13 @@ const AuthWrapper = () => {
         </>
       ) : (
         // User is not logged in - show auth flow starting with StartupScreen
-        <>
-          <Stack.Screen name="Startup" component={StartUpScreen} />
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Signup" component={SignupScreen} />
-          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-        </>
+       <>
+    
+    <Stack.Screen name="Startup" component={StartUpScreen} />
+    <Stack.Screen name="Login" component={LoginScreen} />
+    <Stack.Screen name="Signup" component={SignupScreen} />
+    <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+  </>
       )}
     </Stack.Navigator>
   );

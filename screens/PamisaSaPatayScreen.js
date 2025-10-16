@@ -30,11 +30,10 @@ const PamisaSaPatayScreen = () => {
   const navigation = useNavigation();
   const fadeAnim = useState(new Animated.Value(0))[0];
 
-  // States for date/time pickers
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const [currentPickerField, setCurrentPickerField] = useState('');
-  const [tempDate, setTempDate] = useState(new Date());
+  // Date picker states
+  const [showBurialDatePicker, setShowBurialDatePicker] = useState(false);
+  const [showBurialTimePicker, setShowBurialTimePicker] = useState(false);
+  const [showDeathDatePicker, setShowDeathDatePicker] = useState(false);
 
   const initialFormState = {
     burialDate: "",
@@ -64,110 +63,61 @@ const PamisaSaPatayScreen = () => {
     if (loggedInUser?.email) {
       setFormData((prev) => ({
         ...prev,
-        email_norm: loggedInUser.email
+        email: loggedInUser.email
       }));
     }
   }, [loggedInUser]);
 
-  // Function to open date picker
-  const openDatePicker = (field) => {
-    setCurrentPickerField(field);
-    
-    // Set initial date based on current field value
-    if (formData[field]) {
-      if (field === 'burialDate') {
-        const [year, month, day] = formData[field].split('-').map(Number);
-        setTempDate(new Date(year, month - 1, day));
-      } else if (field === 'deathDate') {
-        const [month, day] = formData[field].split('-').map(Number);
-        const currentYear = new Date().getFullYear();
-        setTempDate(new Date(currentYear, month - 1, day));
-      }
-    } else {
-      setTempDate(new Date());
-    }
-    
-    setShowDatePicker(true);
-  };
-
-  // Function to open time picker
-  const openTimePicker = (field) => {
-    setCurrentPickerField(field);
-    
-    // Set initial time based on current field value
-    if (formData[field]) {
-      const [hours, minutes] = formData[field].split(':').map(Number);
-      const newDate = new Date();
-      newDate.setHours(hours, minutes);
-      setTempDate(newDate);
-    } else {
-      setTempDate(new Date());
-    }
-    
-    setShowTimePicker(true);
-  };
-
-  // Handle date change from picker
-  const onDateChange = (event, selectedDate) => {
-    setShowDatePicker(false);
-    
-    if (selectedDate) {
-      const formattedDate = formatDate(selectedDate, currentPickerField);
-      setFormData(prev => ({
-        ...prev,
-        [currentPickerField]: formattedDate
-      }));
-    }
-  };
-
-  // Handle time change from picker
-  const onTimeChange = (event, selectedDate) => {
-    setShowTimePicker(false);
-    
-    if (selectedDate) {
-      const formattedTime = formatTime(selectedDate);
-      setFormData(prev => ({
-        ...prev,
-        [currentPickerField]: formattedTime
-      }));
-    }
-  };
-
-  // Format date based on field type
-  const formatDate = (date, field) => {
+  // Date handling functions
+  const formatDate = (date) => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    
-    if (field === 'burialDate') {
-      return `${year}-${month}-${day}`;
-    } else if (field === 'deathDate') {
-      return `${month}-${day}`;
-    }
-    
     return `${year}-${month}-${day}`;
   };
 
-  // Format time
   const formatTime = (date) => {
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    minutes = minutes.toString().padStart(2, '0');
+    
+    return `${hours}:${minutes} ${ampm}`;
   };
 
-  // Format date for display
-  const formatDateForDisplay = (dateString, field) => {
-    if (!dateString) return '';
-    
-    if (field === 'burialDate') {
-      const [year, month, day] = dateString.split('-');
-      return `${month}/${day}/${year}`;
-    } else if (field === 'deathDate') {
-      const [month, day] = dateString.split('-');
-      return `${month}/${day}`;
+  const formatMonthDay = (date) => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    return `${month}-${day}`;
+  };
+
+  // Date picker handlers
+  const onBurialDateChange = (event, selectedDate) => {
+    setShowBurialDatePicker(false);
+    if (selectedDate) {
+      handleChange("burialDate", formatDate(selectedDate));
     }
-    
-    return dateString;
+  };
+
+  const onBurialTimeChange = (event, selectedDate) => {
+    setShowBurialTimePicker(false);
+    if (selectedDate) {
+      handleChange("burialTime", formatTime(selectedDate));
+    }
+  };
+
+  const onDeathDateChange = (event, selectedDate) => {
+    setShowDeathDatePicker(false);
+    if (selectedDate) {
+      handleChange("deathDate", formatMonthDay(selectedDate));
+      // Auto-fill the year if not set
+      if (!formData.deathYear) {
+        handleChange("deathYear", selectedDate.getFullYear().toString());
+      }
+    }
   };
 
   const handleChange = (field, value) => {
@@ -175,11 +125,6 @@ const PamisaSaPatayScreen = () => {
     if (['age', 'deathYear', 'phone', 'cellphone', 'donationAmount'].includes(field)) {
       // Remove any non-digit characters
       value = value.replace(/[^0-9]/g, '');
-    }
-
-    // For date/time fields, don't allow manual editing - use picker instead
-    if (['burialDate', 'burialTime', 'deathDate'].includes(field)) {
-      return; // Prevent manual editing for these fields
     }
 
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -193,24 +138,6 @@ const PamisaSaPatayScreen = () => {
         Alert.alert("Invalid Input", `${field.replace(/([A-Z])/g, ' $1')} should contain only digits.`);
         return false;
       }
-    }
-
-    // Validate date format (YYYY-MM-DD) for burialDate if provided
-    if (formData.burialDate && !/^\d{4}-\d{2}-\d{2}$/.test(formData.burialDate)) {
-      Alert.alert("Invalid Input", "Please enter burial date in YYYY-MM-DD format.");
-      return false;
-    }
-
-    // Validate time format (HH:MM)
-    if (formData.burialTime && !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(formData.burialTime)) {
-      Alert.alert("Invalid Input", "Please enter burial time in HH:MM format.");
-      return false;
-    }
-
-    // Validate date format (MM-DD) for deathDate if provided
-    if (formData.deathDate && !/^\d{2}-\d{2}$/.test(formData.deathDate)) {
-      Alert.alert("Invalid Input", "Please enter death date in MM-DD format.");
-      return false;
     }
 
     // Validate year format (YYYY)
@@ -353,74 +280,41 @@ const PamisaSaPatayScreen = () => {
     </View>
   );
 
-  // Custom Date/Time Input Component
-  const DateTimeInput = ({ field, label, placeholder, type = 'date' }) => (
-    <View style={styles.inputContainer}>
-      <View style={styles.labelContainer}>
-        <Ionicons 
-          name={type === 'date' ? "calendar" : "time"} 
-          size={16} 
-          color="#555" 
-          style={styles.fieldIcon} 
-        />
-        <Text style={styles.label}>{label}:</Text>
-      </View>
-      <TouchableOpacity
-        style={styles.dateTimeInput}
-        onPress={() => type === 'date' ? openDatePicker(field) : openTimePicker(field)}
-      >
-        <Text style={[
-          styles.dateTimeText,
-          !formData[field] && styles.placeholderText
-        ]}>
-          {formData[field] 
-            ? (type === 'date' 
-                ? formatDateForDisplay(formData[field], field)
-                : formData[field])
-            : placeholder
-          }
-        </Text>
-        <Ionicons 
-          name={type === 'date' ? "calendar-outline" : "time-outline"} 
-          size={20} 
-          color="#3498db" 
-        />
-      </TouchableOpacity>
-    </View>
-  );
-
   // Group fields into logical sections
   const fieldSections = [
     {
       title: "Burial Details",
+      icon: "calendar",
       fields: [
-        { label: "Petsa ng Libing", key: "burialDate", placeholder: "Pindutin para pumili ng petsa", type: "date" },
-        { label: "Oras", key: "burialTime", placeholder: "Pindutin para pumili ng oras", type: "time" },
+        { label: "Petsa ng Libing", key: "burialDate" },
+        { label: "Oras", key: "burialTime" },
       ]
     },
     {
       title: "Deceased Information",
+      icon: "person",
       fields: [
-        { label: "Pangalan ng Namatay", key: "deceasedName", icon: "person" },
-        { label: "Edad", key: "age", keyboardType: "numeric", maxLength: 3, icon: "ellipsis-horizontal" },
-        { label: "Kailan Namatay (Buwan at Araw)", key: "deathDate", placeholder: "Pindutin para pumili ng petsa", type: "date" },
-        { label: "Anong Taon", key: "deathYear", keyboardType: "numeric", maxLength: 4, icon: "calendar" },
-        { label: "Pangalan ng Ama", key: "fatherName", icon: "man" },
-        { label: "Pangalan ng Ina", key: "motherName", icon: "woman" },
-        { label: "Pangalan ng Asawa", key: "spouseName", icon: "heart" },
-        { label: "Kasalukuyang Tirahan", key: "residence", multiline: true, icon: "home" },
-        { label: "Kung hindi tumanggap ng sakramento, bakit?", key: "reasonNoSacrament", multiline: true, icon: "help-circle" },
-        { label: "Sanhi ng Pagkamatay", key: "causeOfDeath", multiline: true, icon: "medical" },
+        { label: "Pangalan ng Namatay", key: "deceasedName" },
+        { label: "Edad", key: "age" },
+        { label: "Kailan Namatay (Buwan at Araw)", key: "deathDate" },
+        { label: "Anong Taon", key: "deathYear" },
+        { label: "Pangalan ng Ama", key: "fatherName" },
+        { label: "Pangalan ng Ina", key: "motherName" },
+        { label: "Pangalan ng Asawa", key: "spouseName" },
+        { label: "Kasalukuyang Tirahan", key: "residence" },
+        { label: "Kung hindi tumanggap ng sakramento, bakit?", key: "reasonNoSacrament" },
+        { label: "Sanhi ng Pagkamatay", key: "causeOfDeath" },
       ]
     },
     {
       title: "Contact Information",
+      icon: "call",
       fields: [
-        { label: "Pangalan ng Tagapag-ugnay", key: "contactName", icon: "person" },
-        { label: "Kasalukuyang Tirahan (Tagapag-ugnay)", key: "contactResidence", multiline: true, icon: "home" },
-        { label: "Telepono", key: "phone", keyboardType: "numeric", maxLength: 15, icon: "call" },
-        { label: "Cellphone #", key: "cellphone", keyboardType: "numeric", maxLength: 15, icon: "phone-portrait" },
-        { label: "Donation Amount", key: "donationAmount", keyboardType: "numeric", maxLength: 10, icon: "cash" },
+        { label: "Pangalan ng Tagapag-ugnay", key: "contactName" },
+        { label: "Kasalukuyang Tirahan (Tagapag-ugnay)", key: "contactResidence" },
+        { label: "Telepono", key: "phone" },
+        { label: "Cellphone #", key: "cellphone" },
+        { label: "Donation Amount", key: "donationAmount" },
       ]
     }
   ];
@@ -445,43 +339,135 @@ const PamisaSaPatayScreen = () => {
             <View key={sectionIndex} style={styles.section}>
               <Text style={styles.sectionTitle}>{section.title}</Text>
               <View style={styles.sectionContent}>
-                {section.fields.map((field) => (
-                  field.type ? (
-                    <DateTimeInput
-                      key={field.key}
-                      field={field.key}
-                      label={field.label}
-                      placeholder={field.placeholder}
-                      type={field.type}
-                    />
-                  ) : (
-                    <View key={field.key} style={styles.inputContainer}>
-                      <View style={styles.labelContainer}>
-                        {field.icon && (
-                          <Ionicons name={field.icon} size={16} color="#555" style={styles.fieldIcon} />
-                        )}
-                        <Text style={styles.label}>{field.label}:</Text>
+                {section.fields.map((field) => {
+                  // Special handling for date/time fields
+                  if (field.key === "burialDate") {
+                    return (
+                      <View key={field.key} style={styles.inputContainer}>
+                        <View style={styles.labelContainer}>
+                          <Ionicons name="calendar" size={16} color="#555" style={styles.fieldIcon} />
+                          <Text style={styles.label}>{field.label}:</Text>
+                        </View>
+                        <TouchableOpacity 
+                          style={styles.dateInput}
+                          onPress={() => setShowBurialDatePicker(true)}
+                        >
+                          <Text style={formData.burialDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+                            {formData.burialDate || "Petsa ng Libing (Pindutin para pumili)"}
+                          </Text>
+                          <Ionicons name="calendar" size={20} color="#666" />
+                        </TouchableOpacity>
                       </View>
-                      <TextInput
-                        style={[
-                          styles.input, 
-                          field.multiline && styles.multilineInput
-                        ]}
-                        value={String(formData[field.key] ?? "")}
-                        onChangeText={(text) => handleChange(field.key, text)}
-                        keyboardType={field.keyboardType || "default"}
-                        placeholder={field.placeholder || ""}
-                        maxLength={field.maxLength}
-                        multiline={field.multiline}
-                        numberOfLines={field.multiline ? 3 : 1}
-                        textAlignVertical={field.multiline ? "top" : "center"}
-                      />
-                    </View>
-                  )
-                ))}
+                    );
+                  } else if (field.key === "burialTime") {
+                    return (
+                      <View key={field.key} style={styles.inputContainer}>
+                        <View style={styles.labelContainer}>
+                          <Ionicons name="time" size={16} color="#555" style={styles.fieldIcon} />
+                          <Text style={styles.label}>{field.label}:</Text>
+                        </View>
+                        <TouchableOpacity 
+                          style={styles.dateInput}
+                          onPress={() => setShowBurialTimePicker(true)}
+                        >
+                          <Text style={formData.burialTime ? styles.dateInputText : styles.dateInputPlaceholder}>
+                            {formData.burialTime || "Oras ng Libing (Pindutin para pumili)"}
+                          </Text>
+                          <Ionicons name="time" size={20} color="#666" />
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  } else if (field.key === "deathDate") {
+                    return (
+                      <View key={field.key} style={styles.inputContainer}>
+                        <View style={styles.labelContainer}>
+                          <Ionicons name="calendar" size={16} color="#555" style={styles.fieldIcon} />
+                          <Text style={styles.label}>{field.label}:</Text>
+                        </View>
+                        <TouchableOpacity 
+                          style={styles.dateInput}
+                          onPress={() => setShowDeathDatePicker(true)}
+                        >
+                          <Text style={formData.deathDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+                            {formData.deathDate || "Petsa ng Kamatayan (Pindutin para pumili)"}
+                          </Text>
+                          <Ionicons name="calendar" size={20} color="#666" />
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  } else {
+                    return (
+                      <View key={field.key} style={styles.inputContainer}>
+                        <View style={styles.labelContainer}>
+                          <Ionicons name={field.icon || "document"} size={16} color="#555" style={styles.fieldIcon} />
+                          <Text style={styles.label}>{field.label}:</Text>
+                        </View>
+                        <TextInput
+                          style={[
+                            styles.input, 
+                            (field.key === 'residence' || field.key === 'reasonNoSacrament' || field.key === 'causeOfDeath' || field.key === 'contactResidence') && styles.multilineInput
+                          ]}
+                          value={String(formData[field.key] ?? "")}
+                          onChangeText={(text) => handleChange(field.key, text)}
+                          keyboardType={
+                            ['age', 'deathYear', 'phone', 'cellphone', 'donationAmount'].includes(field.key) 
+                              ? "numeric" 
+                              : "default"
+                          }
+                          placeholder={field.placeholder || ""}
+                          maxLength={field.maxLength}
+                          multiline={
+                            field.key === 'residence' || 
+                            field.key === 'reasonNoSacrament' || 
+                            field.key === 'causeOfDeath' || 
+                            field.key === 'contactResidence'
+                          }
+                          numberOfLines={
+                            (field.key === 'residence' || field.key === 'reasonNoSacrament' || field.key === 'causeOfDeath' || field.key === 'contactResidence') 
+                              ? 3 
+                              : 1
+                          }
+                          textAlignVertical={
+                            (field.key === 'residence' || field.key === 'reasonNoSacrament' || field.key === 'causeOfDeath' || field.key === 'contactResidence') 
+                              ? "top" 
+                              : "center"
+                          }
+                        />
+                      </View>
+                    );
+                  }
+                })}
               </View>
             </View>
           ))}
+
+          {/* Date Pickers */}
+          {showBurialDatePicker && (
+            <DateTimePicker
+              value={new Date()}
+              mode="date"
+              display="default"
+              onChange={onBurialDateChange}
+            />
+          )}
+
+          {showBurialTimePicker && (
+            <DateTimePicker
+              value={new Date()}
+              mode="time"
+              display="default"
+              onChange={onBurialTimeChange}
+            />
+          )}
+
+          {showDeathDatePicker && (
+            <DateTimePicker
+              value={new Date()}
+              mode="date"
+              display="default"
+              onChange={onDeathDateChange}
+            />
+          )}
 
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>
@@ -511,28 +497,6 @@ const PamisaSaPatayScreen = () => {
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>
-
-      {/* Date Picker */}
-      {showDatePicker && (
-        <DateTimePicker
-          value={tempDate}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={onDateChange}
-          style={styles.datePicker}
-        />
-      )}
-
-      {/* Time Picker */}
-      {showTimePicker && (
-        <DateTimePicker
-          value={tempDate}
-          mode="time"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={onTimeChange}
-          style={styles.timePicker}
-        />
-      )}
 
       {/* Requirements Modal */}
       <Modal 
@@ -645,11 +609,7 @@ const PamisaSaPatayScreen = () => {
                     <PreviewField 
                       key={field.key}
                       label={field.label} 
-                      value={
-                        field.type === 'date' && formData[field.key]
-                          ? formatDateForDisplay(formData[field.key], field.key)
-                          : formData[field.key]
-                      } 
+                      value={formData[field.key]} 
                     />
                   ))}
                 </PreviewSection>
@@ -682,7 +642,7 @@ const PamisaSaPatayScreen = () => {
   );
 };
 
-// Updated styles
+// Updated styles to include dateInput styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -746,24 +706,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#2c3e50',
   },
-  // New styles for date/time inputs
-  dateTimeInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: 'white',
-  },
-  dateTimeText: {
-    fontSize: 16,
-    color: '#2c3e50',
-  },
-  placeholderText: {
-    color: '#999',
-  },
   input: {
     borderWidth: 1,
     borderColor: '#ddd',
@@ -772,15 +714,27 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     fontSize: 16,
   },
+  dateInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: '#f9f9f9',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateInputText: {
+    fontSize: 16,
+    color: "#000",
+  },
+  dateInputPlaceholder: {
+    fontSize: 16,
+    color: "#999",
+  },
   multilineInput: {
     minHeight: 100,
     textAlignVertical: 'top',
-  },
-  datePicker: {
-    backgroundColor: 'white',
-  },
-  timePicker: {
-    backgroundColor: 'white',
   },
   buttonContainer: {
     flexDirection: "row",
@@ -822,7 +776,7 @@ const styles = StyleSheet.create({
   },
 });
 
-// The rest of the styles (previewStyles and demandStyles) remain the same...
+// ... (keep the existing previewStyles and demandStyles objects exactly as they are)
 const previewStyles = StyleSheet.create({
   modalContainer: {
     flex: 1,
