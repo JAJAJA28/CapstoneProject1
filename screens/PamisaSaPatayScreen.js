@@ -68,7 +68,7 @@ const PamisaSaPatayScreen = () => {
     }
   }, [loggedInUser]);
 
-  // Date handling functions
+  // Improved Date handling functions for both Android and iOS
   const formatDate = (date) => {
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -82,7 +82,7 @@ const PamisaSaPatayScreen = () => {
     const ampm = hours >= 12 ? 'PM' : 'AM';
     
     hours = hours % 12;
-    hours = hours ? hours : 12; // the hour '0' should be '12'
+    hours = hours ? hours : 12;
     minutes = minutes.toString().padStart(2, '0');
     
     return `${hours}:${minutes} ${ampm}`;
@@ -96,21 +96,27 @@ const PamisaSaPatayScreen = () => {
 
   // Date picker handlers
   const onBurialDateChange = (event, selectedDate) => {
-    setShowBurialDatePicker(false);
+    if (Platform.OS === 'android') {
+      setShowBurialDatePicker(false);
+    }
     if (selectedDate) {
       handleChange("burialDate", formatDate(selectedDate));
     }
   };
 
   const onBurialTimeChange = (event, selectedDate) => {
-    setShowBurialTimePicker(false);
+    if (Platform.OS === 'android') {
+      setShowBurialTimePicker(false);
+    }
     if (selectedDate) {
       handleChange("burialTime", formatTime(selectedDate));
     }
   };
 
   const onDeathDateChange = (event, selectedDate) => {
-    setShowDeathDatePicker(false);
+    if (Platform.OS === 'android') {
+      setShowDeathDatePicker(false);
+    }
     if (selectedDate) {
       handleChange("deathDate", formatMonthDay(selectedDate));
       // Auto-fill the year if not set
@@ -118,6 +124,11 @@ const PamisaSaPatayScreen = () => {
         handleChange("deathYear", selectedDate.getFullYear().toString());
       }
     }
+  };
+
+  // Function to handle N/A option
+  const handleNAOption = (field) => {
+    handleChange(field, "N/A");
   };
 
   const handleChange = (field, value) => {
@@ -395,6 +406,38 @@ const PamisaSaPatayScreen = () => {
                         </TouchableOpacity>
                       </View>
                     );
+                  } else if (field.key === "reasonNoSacrament" || field.key === "causeOfDeath" || field.key === "phone") {
+                    return (
+                      <View key={field.key} style={styles.inputContainer}>
+                        <View style={styles.labelContainer}>
+                          <Ionicons name={field.icon || "document"} size={16} color="#555" style={styles.fieldIcon} />
+                          <Text style={styles.label}>{field.label}:</Text>
+                        </View>
+                        <View style={styles.inputWithNA}>
+                          <TextInput
+                            style={[
+                              styles.input, 
+                              (field.key === 'reasonNoSacrament' || field.key === 'causeOfDeath') && styles.multilineInput,
+                              { flex: 1 }
+                            ]}
+                            value={String(formData[field.key] ?? "")}
+                            onChangeText={(text) => handleChange(field.key, text)}
+                            keyboardType={field.key === 'phone' ? "numeric" : "default"}
+                            placeholder={field.placeholder || ""}
+                            maxLength={field.maxLength}
+                            multiline={field.key === 'reasonNoSacrament' || field.key === 'causeOfDeath'}
+                            numberOfLines={field.key === 'reasonNoSacrament' || field.key === 'causeOfDeath' ? 3 : 1}
+                            textAlignVertical={field.key === 'reasonNoSacrament' || field.key === 'causeOfDeath' ? "top" : "center"}
+                          />
+                          <TouchableOpacity
+                            style={styles.naButton}
+                            onPress={() => handleNAOption(field.key)}
+                          >
+                            <Text style={styles.naButtonText}>N/A</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    );
                   } else {
                     return (
                       <View key={field.key} style={styles.inputContainer}>
@@ -405,12 +448,12 @@ const PamisaSaPatayScreen = () => {
                         <TextInput
                           style={[
                             styles.input, 
-                            (field.key === 'residence' || field.key === 'reasonNoSacrament' || field.key === 'causeOfDeath' || field.key === 'contactResidence') && styles.multilineInput
+                            (field.key === 'residence' || field.key === 'contactResidence') && styles.multilineInput
                           ]}
                           value={String(formData[field.key] ?? "")}
                           onChangeText={(text) => handleChange(field.key, text)}
                           keyboardType={
-                            ['age', 'deathYear', 'phone', 'cellphone', 'donationAmount'].includes(field.key) 
+                            ['age', 'deathYear', 'cellphone', 'donationAmount'].includes(field.key) 
                               ? "numeric" 
                               : "default"
                           }
@@ -418,17 +461,15 @@ const PamisaSaPatayScreen = () => {
                           maxLength={field.maxLength}
                           multiline={
                             field.key === 'residence' || 
-                            field.key === 'reasonNoSacrament' || 
-                            field.key === 'causeOfDeath' || 
                             field.key === 'contactResidence'
                           }
                           numberOfLines={
-                            (field.key === 'residence' || field.key === 'reasonNoSacrament' || field.key === 'causeOfDeath' || field.key === 'contactResidence') 
+                            (field.key === 'residence' || field.key === 'contactResidence') 
                               ? 3 
                               : 1
                           }
                           textAlignVertical={
-                            (field.key === 'residence' || field.key === 'reasonNoSacrament' || field.key === 'causeOfDeath' || field.key === 'contactResidence') 
+                            (field.key === 'residence' || field.key === 'contactResidence') 
                               ? "top" 
                               : "center"
                           }
@@ -446,7 +487,7 @@ const PamisaSaPatayScreen = () => {
             <DateTimePicker
               value={new Date()}
               mode="date"
-              display="default"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={onBurialDateChange}
             />
           )}
@@ -455,7 +496,7 @@ const PamisaSaPatayScreen = () => {
             <DateTimePicker
               value={new Date()}
               mode="time"
-              display="default"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={onBurialTimeChange}
             />
           )}
@@ -464,7 +505,7 @@ const PamisaSaPatayScreen = () => {
             <DateTimePicker
               value={new Date()}
               mode="date"
-              display="default"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={onDeathDateChange}
             />
           )}
@@ -530,16 +571,9 @@ const PamisaSaPatayScreen = () => {
                   </View>
                   <View style={demandStyles.listItem}>
                     <View style={demandStyles.bullet} />
-                    <Text style={demandStyles.listText}>Baptismal Certificate of the Deceased</Text>
-                  </View>
-                  <View style={demandStyles.listItem}>
-                    <View style={demandStyles.bullet} />
-                    <Text style={demandStyles.listText}>Letter of Request for Mass</Text>
-                  </View>
-                  <View style={demandStyles.listItem}>
-                    <View style={demandStyles.bullet} />
-                    <Text style={demandStyles.listText}>Valid ID of the Contact Person</Text>
-                  </View>
+                    <Text style={demandStyles.listText}>Accomplished Funeral Form</Text>
+                  </View>           
+              
                 </View>
               </View>
               
@@ -558,16 +592,8 @@ const PamisaSaPatayScreen = () => {
                     </View>
                     <View style={demandStyles.feeOption}>
                       <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
-                      <Text style={demandStyles.feeText}><Text style={demandStyles.bold}>Regular Mass - ₱1,000</Text> (Monday - Saturday)</Text>
-                    </View>
-                    <View style={demandStyles.feeOption}>
-                      <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
-                      <Text style={demandStyles.feeText}><Text style={demandStyles.bold}>Sunday Mass - ₱1,500</Text></Text>
-                    </View>
-                    <View style={demandStyles.feeOption}>
-                      <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
-                      <Text style={demandStyles.feeText}><Text style={demandStyles.bold}>Special Request - ₱2,000</Text> (Outside regular schedule)</Text>
-                    </View>
+                      <Text style={demandStyles.feeText}><Text style={demandStyles.bold}>Donation Only</Text> (All Weekdays except Monday)</Text>
+                    </View>                    
                   </View>
                   
                   <View style={demandStyles.note}>
@@ -642,7 +668,7 @@ const PamisaSaPatayScreen = () => {
   );
 };
 
-// Updated styles to include dateInput styles
+// Updated styles to include dateInput and N/A button styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -731,6 +757,25 @@ const styles = StyleSheet.create({
   dateInputPlaceholder: {
     fontSize: 16,
     color: "#999",
+  },
+  inputWithNA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  naButton: {
+    backgroundColor: '#6c757d',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 60,
+  },
+  naButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
   },
   multilineInput: {
     minHeight: 100,

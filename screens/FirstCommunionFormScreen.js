@@ -56,7 +56,7 @@ const FirstCommunionFormScreen = ({ navigation }) => {
     return () => subscription?.remove();
   }, []);
 
-  // Date handling functions
+  // Improved Date handling functions for both Android and iOS
   const formatDate = (date) => {
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -65,17 +65,28 @@ const FirstCommunionFormScreen = ({ navigation }) => {
   };
 
   const onCommunionDateChange = (event, selectedDate) => {
-    setShowCommunionDatePicker(false);
+    if (Platform.OS === 'android') {
+      setShowCommunionDatePicker(false);
+    }
+    
     if (selectedDate) {
       handleInputChange("communionDate", formatDate(selectedDate));
     }
   };
 
   const onBaptismDateChange = (event, selectedDate) => {
-    setShowBaptismDatePicker(false);
+    if (Platform.OS === 'android') {
+      setShowBaptismDatePicker(false);
+    }
+    
     if (selectedDate) {
       handleInputChange("baptismDate", formatDate(selectedDate));
     }
+  };
+
+  // Function to handle N/A option
+  const handleNAOption = (field) => {
+    handleInputChange(field, "N/A");
   };
 
   // Responsive style calculations
@@ -216,7 +227,7 @@ const FirstCommunionFormScreen = ({ navigation }) => {
             <DateTimePicker
               value={new Date()}
               mode="date"
-              display="default"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={onCommunionDateChange}
             />
           )}
@@ -225,8 +236,8 @@ const FirstCommunionFormScreen = ({ navigation }) => {
             <DateTimePicker
               value={new Date()}
               mode="date"
-              display="default"
-              onChange={onBaptismDateChange}
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={onBaptismDatePicker}
             />
           )}
 
@@ -324,7 +335,7 @@ const FirstCommunionFormScreen = ({ navigation }) => {
                       </View>
                       <View style={styles.requirementItem}>
                         <Ionicons name="checkmark-circle" size={isPortrait ? 18 : 16} color="#2c843e" />
-                        <Text style={styles.requirementText}>Parent's/Guardian's Consent Form</Text>
+                        <Text style={styles.requirementText}>Request Form from School</Text>
                       </View>
                     </View>
                   </View>
@@ -358,6 +369,10 @@ const FirstCommunionFormScreen = ({ navigation }) => {
                         <Ionicons name="alert-circle" size={isPortrait ? 16 : 14} color="#e63946" />
                         <Text style={styles.reminderText}>Huwag kalimutang ipasa ang requirements bago ang takdang petsa</Text>
                       </View>
+                      <View style={styles.reminderItem}>
+                        <Ionicons name="alert-circle" size={isPortrait ? 16 : 14} color="#e63946" />
+                        <Text style={styles.reminderText}>School po ang magpapa schdule sa simbahan, kung mangyaring mag fill up po kayo dito, isasave namin ito bilang reference pansamantala.</Text>
+                      </View>
                     </View>
                   </View>
                 </ScrollView>
@@ -386,17 +401,26 @@ const FirstCommunionFormScreen = ({ navigation }) => {
               />
               
               {/* Communion Date with Date Picker */}
-              <TouchableOpacity
-                style={[styles.dateInput, {
-                  height: responsiveStyles.inputHeight
-                }]}
-                onPress={() => setShowCommunionDatePicker(true)}
-              >
-                <Text style={formData.communionDate ? styles.dateInputText : styles.dateInputPlaceholder}>
-                  {formData.communionDate || "Petsa ng Komunyon (Pindutin para pumili)"}
-                </Text>
-                <Ionicons name="calendar" size={20} color="#666" />
-              </TouchableOpacity>
+              <View style={styles.dateInputContainer}>
+                <TouchableOpacity
+                  style={[styles.dateInput, {
+                    height: responsiveStyles.inputHeight,
+                    flex: 1
+                  }]}
+                  onPress={() => setShowCommunionDatePicker(true)}
+                >
+                  <Text style={formData.communionDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+                    {formData.communionDate || "Petsa ng Komunyon (Pindutin para pumili)"}
+                  </Text>
+                  <Ionicons name="calendar" size={20} color="#666" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.naButton}
+                  onPress={() => handleNAOption("communionDate")}
+                >
+                  <Text style={styles.naButtonText}>N/A</Text>
+                </TouchableOpacity>
+              </View>
 
               <TextInput
                 style={[styles.input, {
@@ -419,16 +443,28 @@ const FirstCommunionFormScreen = ({ navigation }) => {
                 value={formData.age}
                 onChangeText={(text) => handleInputChange("age", text)}
               />
-              <TextInput
-                style={[styles.input, {
-                  fontSize: responsiveStyles.inputFontSize,
-                  height: responsiveStyles.inputHeight
-                }]}
-                placeholder="Greyd at Seksyon"
-                placeholderTextColor="#999"
-                value={formData.gradeSection}
-                onChangeText={(text) => handleInputChange("gradeSection", text)}
-              />
+              
+              {/* Grade and Section with N/A option */}
+              <View style={styles.inputWithNA}>
+                <TextInput
+                  style={[styles.input, {
+                    fontSize: responsiveStyles.inputFontSize,
+                    height: responsiveStyles.inputHeight,
+                    flex: 1
+                  }]}
+                  placeholder="Greyd at Seksyon"
+                  placeholderTextColor="#999"
+                  value={formData.gradeSection}
+                  onChangeText={(text) => handleInputChange("gradeSection", text)}
+                />
+                <TouchableOpacity
+                  style={styles.naButton}
+                  onPress={() => handleNAOption("gradeSection")}
+                >
+                  <Text style={styles.naButtonText}>N/A</Text>
+                </TouchableOpacity>
+              </View>
+
               <TextInput
                 style={[styles.input, {
                   fontSize: responsiveStyles.inputFontSize,
@@ -450,18 +486,27 @@ const FirstCommunionFormScreen = ({ navigation }) => {
                 onChangeText={(text) => handleInputChange("parish", text)}
               />
               
-              {/* Baptism Date with Date Picker */}
-              <TouchableOpacity
-                style={[styles.dateInput, {
-                  height: responsiveStyles.inputHeight
-                }]}
-                onPress={() => setShowBaptismDatePicker(true)}
-              >
-                <Text style={formData.baptismDate ? styles.dateInputText : styles.dateInputPlaceholder}>
-                  {formData.baptismDate || "Petsa ng Binyag (Pindutin para pumili)"}
-                </Text>
-                <Ionicons name="calendar" size={20} color="#666" />
-              </TouchableOpacity>
+              {/* Baptism Date with Date Picker and N/A option */}
+              <View style={styles.dateInputContainer}>
+                <TouchableOpacity
+                  style={[styles.dateInput, {
+                    height: responsiveStyles.inputHeight,
+                    flex: 1
+                  }]}
+                  onPress={() => setShowBaptismDatePicker(true)}
+                >
+                  <Text style={formData.baptismDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+                    {formData.baptismDate || "Petsa ng Binyag (Pindutin para pumili)"}
+                  </Text>
+                  <Ionicons name="calendar" size={20} color="#666" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.naButton}
+                  onPress={() => handleNAOption("baptismDate")}
+                >
+                  <Text style={styles.naButtonText}>N/A</Text>
+                </TouchableOpacity>
+              </View>
 
               <TextInput
                 style={[styles.input, {
@@ -483,17 +528,28 @@ const FirstCommunionFormScreen = ({ navigation }) => {
                 value={formData.gender}
                 onChangeText={(text) => handleInputChange("gender", text)}
               />
-              <TextInput
-                style={[styles.input, {
-                  fontSize: responsiveStyles.inputFontSize,
-                  height: responsiveStyles.inputHeight
-                }]}
-                placeholder="Bayad (Fee)"
-                placeholderTextColor="#999"
-                keyboardType="numeric"
-                value={formData.fee}
-                onChangeText={(text) => handleInputChange("fee", text)}
-              />
+              
+              {/* Fee with N/A option */}
+              <View style={styles.inputWithNA}>
+                <TextInput
+                  style={[styles.input, {
+                    fontSize: responsiveStyles.inputFontSize,
+                    height: responsiveStyles.inputHeight,
+                    flex: 1
+                  }]}
+                  placeholder="Bayad (Fee)"
+                  placeholderTextColor="#999"
+                  keyboardType="numeric"
+                  value={formData.fee}
+                  onChangeText={(text) => handleInputChange("fee", text)}
+                />
+                <TouchableOpacity
+                  style={styles.naButton}
+                  onPress={() => handleNAOption("fee")}
+                >
+                  <Text style={styles.naButtonText}>N/A</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.buttonContainer}>
@@ -559,12 +615,17 @@ const createStyles = (responsiveStyles, isPortrait) => StyleSheet.create({
     marginBottom: 15,
     backgroundColor: '#f9f9f9',
   },
+  dateInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    gap: 10,
+  },
   dateInput: {
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 8,
     padding: 15,
-    marginBottom: 15,
     backgroundColor: '#f9f9f9',
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -577,6 +638,26 @@ const createStyles = (responsiveStyles, isPortrait) => StyleSheet.create({
   dateInputPlaceholder: {
     fontSize: 16,
     color: "#999",
+  },
+  inputWithNA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    gap: 10,
+  },
+  naButton: {
+    backgroundColor: '#6c757d',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 60,
+  },
+  naButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
   },
   buttonContainer: {
     flexDirection: "row",

@@ -58,7 +58,7 @@ const BlessingScreen = ({ navigation }) => {
         { label: '📌 Others', value: 'Others' },
     ];
 
-    // Date and Time handling functions
+    // Improved Date and Time handling functions for both Android and iOS
     const formatDate = (selectedDate) => {
         const day = selectedDate.getDate().toString().padStart(2, '0');
         const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
@@ -72,29 +72,45 @@ const BlessingScreen = ({ navigation }) => {
         const ampm = hours >= 12 ? 'PM' : 'AM';
         
         hours = hours % 12;
-        hours = hours ? hours : 12; // the hour '0' should be '12'
+        hours = hours ? hours : 12;
         minutes = minutes.toString().padStart(2, '0');
         
         return `${hours}:${minutes} ${ampm}`;
     };
 
     const onDateChange = (event, selectedDate) => {
-        setShowDatePicker(false);
+        if (Platform.OS === 'android') {
+            setShowDatePicker(false);
+        }
         if (selectedDate) {
             setDate(formatDate(selectedDate));
         }
     };
 
     const onTimeChange = (event, selectedTime) => {
-        setShowTimePicker(false);
+        if (Platform.OS === 'android') {
+            setShowTimePicker(false);
+        }
         if (selectedTime) {
             setTime(formatTime(selectedTime));
         }
     };
 
+    // Function to handle N/A option
+    const handleNAOption = (field) => {
+        switch(field) {
+            case 'email':
+                setEmail('N/A');
+                break;
+            case 'minister':
+                setMinister('N/A');
+                break;
+        }
+    };
+
     const validateForm = () => {
-        if (!name || !email || !address || !telNo || !civilStatus || !establishment || !date || !time || !place || !minister) {
-            Alert.alert('Incomplete Form', 'Please fill out all fields before submitting.');
+        if (!name || !address || !telNo || !civilStatus || !establishment || !date || !time || !place) {
+            Alert.alert('Incomplete Form', 'Please fill out all required fields before submitting.');
             return false;
         }
 
@@ -103,11 +119,13 @@ const BlessingScreen = ({ navigation }) => {
             return false;
         }
 
-        // Basic email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            Alert.alert('Invalid Email', 'Please enter a valid email address.');
-            return false;
+        // Email validation (optional field)
+        if (email && email !== 'N/A') {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                Alert.alert('Invalid Email', 'Please enter a valid email address or use N/A.');
+                return false;
+            }
         }
 
         return true;
@@ -140,7 +158,7 @@ const BlessingScreen = ({ navigation }) => {
         
         const formData = {
             name,
-            email,
+            email: email || 'N/A',
             address,
             telNo,
             civilStatus,
@@ -148,7 +166,7 @@ const BlessingScreen = ({ navigation }) => {
             date,
             time,
             place,
-            minister,
+            minister: minister || 'N/A',
         };
 
         try {
@@ -251,7 +269,7 @@ const BlessingScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="date"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onDateChange}
                         />
                     )}
@@ -260,7 +278,7 @@ const BlessingScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="time"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onTimeChange}
                         />
                     )}
@@ -269,7 +287,7 @@ const BlessingScreen = ({ navigation }) => {
                     
                     <View style={styles.formContainer}>
                         {/* NAME */}
-                        <Text style={styles.label}>Full Name</Text>
+                        <Text style={styles.label}>Full Name *</Text>
                         <TextInput 
                             style={styles.input} 
                             placeholder="Enter your full name" 
@@ -277,19 +295,27 @@ const BlessingScreen = ({ navigation }) => {
                             onChangeText={setName} 
                         />
 
-                        {/* EMAIL */}
+                        {/* EMAIL with N/A Option */}
                         <Text style={styles.label}>Email Address</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Enter your email"
-                            value={email}
-                            onChangeText={setEmail}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                        />
+                        <View style={styles.inputWithNA}>
+                            <TextInput
+                                style={[styles.input, { flex: 1 }]}
+                                placeholder="Enter your email"
+                                value={email}
+                                onChangeText={setEmail}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                            />
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption('email')}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
 
                         {/* ADDRESS */}
-                        <Text style={styles.label}>Address</Text>
+                        <Text style={styles.label}>Address *</Text>
                         <TextInput 
                             style={styles.input} 
                             placeholder="Enter your complete address" 
@@ -298,7 +324,7 @@ const BlessingScreen = ({ navigation }) => {
                         />
 
                         {/* TEL. NO */}
-                        <Text style={styles.label}>Phone Number</Text>
+                        <Text style={styles.label}>Phone Number *</Text>
                         <TextInput 
                             style={styles.input} 
                             placeholder="Enter your phone number" 
@@ -308,7 +334,7 @@ const BlessingScreen = ({ navigation }) => {
                         />
 
                         {/* CIVIL STATUS */}
-                        <Text style={styles.label}>Civil Status</Text>
+                        <Text style={styles.label}>Civil Status *</Text>
                         <View style={styles.optionContainer}>
                             {civilStatusOptions.map((option) => (
                                 <TouchableOpacity
@@ -330,7 +356,7 @@ const BlessingScreen = ({ navigation }) => {
                         </View>
 
                         {/* Establishment */}
-                        <Text style={styles.label}>Type of Establishment</Text>
+                        <Text style={styles.label}>Type of Establishment *</Text>
                         <View style={styles.optionContainer}>
                             {establishmentOptions.map((option) => (
                                 <TouchableOpacity
@@ -354,7 +380,7 @@ const BlessingScreen = ({ navigation }) => {
                         {/* Input Field for "Others" Establishment */}
                         {establishment === 'Others' && (
                             <>
-                                <Text style={styles.label}>Specify Establishment</Text>
+                                <Text style={styles.label}>Specify Establishment *</Text>
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Please specify the establishment type"
@@ -365,7 +391,7 @@ const BlessingScreen = ({ navigation }) => {
                         )}
 
                         {/* DATE */}
-                        <Text style={styles.label}>Date of Blessing</Text>
+                        <Text style={styles.label}>Date of Blessing *</Text>
                         <TouchableOpacity
                             style={styles.dateInput}
                             onPress={() => setShowDatePicker(true)}
@@ -377,7 +403,7 @@ const BlessingScreen = ({ navigation }) => {
                         </TouchableOpacity>
 
                         {/* TIME */}
-                        <Text style={styles.label}>Time of Blessing</Text>
+                        <Text style={styles.label}>Time of Blessing *</Text>
                         <TouchableOpacity
                             style={styles.dateInput}
                             onPress={() => setShowTimePicker(true)}
@@ -389,7 +415,7 @@ const BlessingScreen = ({ navigation }) => {
                         </TouchableOpacity>
 
                         {/* PLACE */}
-                        <Text style={styles.label}>Place of Blessing</Text>
+                        <Text style={styles.label}>Place of Blessing *</Text>
                         <TextInput 
                             style={styles.input} 
                             placeholder="Enter the venue or location" 
@@ -397,14 +423,24 @@ const BlessingScreen = ({ navigation }) => {
                             onChangeText={setPlace} 
                         />
 
-                        {/* MINISTER */}
+                        {/* MINISTER with N/A Option */}
                         <Text style={styles.label}>Preferred Minister</Text>
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="Enter minister's name" 
-                            value={minister} 
-                            onChangeText={setMinister} 
-                        />
+                        <View style={styles.inputWithNA}>
+                            <TextInput 
+                                style={[styles.input, { flex: 1 }]} 
+                                placeholder="Enter minister's name" 
+                                value={minister} 
+                                onChangeText={setMinister} 
+                            />
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption('minister')}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <Text style={styles.requiredNote}>* Required fields</Text>
                     </View>
 
                     {/* BUTTONS */}
@@ -457,16 +493,10 @@ const BlessingScreen = ({ navigation }) => {
                                         <View style={demandStyles.list}>
                                             <View style={demandStyles.listItem}>
                                                 <View style={demandStyles.bullet} />
-                                                <Text style={demandStyles.listText}>Proof of Ownership or Authorization</Text>
+                                                <Text style={demandStyles.listText}>Accomplished Blessing Form</Text>
                                             </View>
-                                            <View style={demandStyles.listItem}>
-                                                <View style={demandStyles.bullet} />
-                                                <Text style={demandStyles.listText}>Valid ID of the Requestor</Text>
-                                            </View>
-                                            <View style={demandStyles.listItem}>
-                                                <View style={demandStyles.bullet} />
-                                                <Text style={demandStyles.listText}>Recent Photo of the Establishment</Text>
-                                            </View>
+                                           
+                                          
                                         </View>
                                     </View>
                                     
@@ -481,19 +511,8 @@ const BlessingScreen = ({ navigation }) => {
                                             <View style={demandStyles.reminderCard}>
                                                 <View style={demandStyles.reminderHeader}>
                                                     <Ionicons name="information-circle" size={18} color="#3498db" />
-                                                    <Text style={demandStyles.reminderTitle}>Fee Information</Text>
-                                                </View>
-                                                <View style={demandStyles.feeOption}>
-                                                    <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
-                                                    <View style={{ marginLeft: 8 }}>
-                                                        <Text style={demandStyles.feeText}>
-                                                            <Text style={demandStyles.bold}>Standard Fee - ₱500</Text> (Residential)
-                                                        </Text>
-                                                        <Text style={demandStyles.feeText}>
-                                                            <Text style={demandStyles.bold}>Business Fee - ₱1,000</Text> (Commercial)
-                                                        </Text>
-                                                    </View>
-                                                </View>
+                                                    <Text style={demandStyles.reminderTitle}>Paki sigurado na tama ang inilagay na mga detalye lalo na ang address or location.</Text>
+                                                </View>                                               
                                                 
                                                 <View style={demandStyles.note}>
                                                     <Ionicons name="time" size={16} color="#f39c12" />
@@ -631,6 +650,26 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#999',
     },
+    inputWithNA: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        marginBottom: 20,
+    },
+    naButton: {
+        backgroundColor: '#6c757d',
+        paddingHorizontal: 15,
+        paddingVertical: 12,
+        borderRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+        minWidth: 60,
+    },
+    naButtonText: {
+        color: 'white',
+        fontWeight: '600',
+        fontSize: 14,
+    },
     optionContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -658,6 +697,13 @@ const styles = StyleSheet.create({
     optionText: {
         fontSize: 14,
         fontWeight: '500',
+    },
+    requiredNote: {
+        fontSize: 14,
+        color: '#e74c3c',
+        fontStyle: 'italic',
+        marginTop: 10,
+        textAlign: 'center',
     },
     buttonContainer: {
         width: '100%',

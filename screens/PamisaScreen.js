@@ -409,16 +409,8 @@ const PamisaScreen = ({ navigation }) => {
                                             <View style={demandStyles.reminderCard}>
                                                 <View style={demandStyles.reminderHeader}>
                                                     <Ionicons name="information-circle" size={18} color="#3498db" />
-                                                    <Text style={demandStyles.reminderTitle}>Donation Options</Text>
-                                                </View>
-                                                <View style={demandStyles.feeOption}>
-                                                    <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
-                                                    <Text style={demandStyles.feeText}><Text style={demandStyles.bold}>Standard Donation - ₱500</Text> (Regular Mass)</Text>
-                                                </View>
-                                                <View style={demandStyles.feeOption}>
-                                                    <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
-                                                    <Text style={demandStyles.feeText}><Text style={demandStyles.bold}>Special Intention - ₱1,000</Text> (Special Requests)</Text>
-                                                </View>
+                                                    <Text style={demandStyles.reminderTitle}>Nothing to see here..</Text>
+                                                </View>                                                                                     
                                             </View>
                                             
                                             <View style={demandStyles.note}>

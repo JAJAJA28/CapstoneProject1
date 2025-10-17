@@ -37,7 +37,7 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // ✅ Tabs kapag naka-login
-const MainTabs = () => {
+function MainTabs() {
   const { loggedInUser } = useContext(AuthContext);
 
   return (
@@ -55,43 +55,46 @@ const MainTabs = () => {
     >
       <Tab.Screen
         name="Home"
+        component={HomeScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="home-outline" color={color} size={30} />
           ),
         }}
-        component={HomeScreen}
       />
 
       <Tab.Screen
         name="Dashboard"
+        component={DashboardScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="view-dashboard-outline" color={color} size={30} />
           ),
         }}
-        component={DashboardScreen}
       />
 
       <Tab.Screen
         name="Profile"
+        component={ProfileScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="account-circle-outline" color={color} size={30} />
           ),
         }}
-        component={ProfileScreen}
       />
     </Tab.Navigator>
   );
-};
+}
 
-// ✅ Auth Wrapper
-const AuthWrapper = () => {
+// ✅ Auth Wrapper - SIMPLE VERSION
+function AuthWrapper() {
   const { loggedInUser } = useContext(AuthContext);
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      screenOptions={{ headerShown: false }}
+      initialRouteName={loggedInUser ? "MainTabs" : "Startup"}
+    >
       {loggedInUser ? (
         // User is logged in - show main app
         <>
@@ -115,18 +118,17 @@ const AuthWrapper = () => {
           <Stack.Screen name="MyReservations" component={MyReservationsScreen} />
         </>
       ) : (
-        // User is not logged in - show auth flow starting with StartupScreen
-       <>
-    
-    <Stack.Screen name="Startup" component={StartUpScreen} />
-    <Stack.Screen name="Login" component={LoginScreen} />
-    <Stack.Screen name="Signup" component={SignupScreen} />
-    <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-  </>
+        // User is not logged in - LAHAT NG SCREENS ANDITO
+        <>
+          <Stack.Screen name="Startup" component={StartUpScreen} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Signup" component={SignupScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+        </>
       )}
     </Stack.Navigator>
   );
-};
+}
 
 // ✅ App Entry
 export default function App() {

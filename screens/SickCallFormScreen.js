@@ -54,7 +54,7 @@ const SickCallFormScreen = ({ navigation }) => {
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Date handling functions
+  // Improved Date handling functions for both Android and iOS
   const formatDate = (date) => {
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -63,10 +63,17 @@ const SickCallFormScreen = ({ navigation }) => {
   };
 
   const onDateChange = (event, selectedDate) => {
-    setShowDatePicker(false);
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
     if (selectedDate) {
       handleChange("dateOfVisit", formatDate(selectedDate));
     }
+  };
+
+  // Function to handle N/A option
+  const handleNAOption = (field) => {
+    handleChange(field, "N/A");
   };
 
   const handleChange = (field, value) => {
@@ -200,10 +207,7 @@ const SickCallFormScreen = ({ navigation }) => {
   );
 
   const requirements = [
-    "Valid ID with picture",
-    "Medical certificate from your doctor",
-    "Recent medical test results (if available)",
-    "Proof of address (utility bill, etc.)",
+    
     "Contact information of your designated person"
   ];
 
@@ -216,7 +220,7 @@ const SickCallFormScreen = ({ navigation }) => {
             <DateTimePicker
               value={new Date()}
               mode="date"
-              display="default"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={onDateChange}
             />
           )}
@@ -231,7 +235,6 @@ const SickCallFormScreen = ({ navigation }) => {
             { label: "ADDRESS:", field: "address", placeholder: "Enter complete address" },
             { label: "AGE:", field: "age", placeholder: "Enter age", keyboardType: "numeric" },
             { label: "STATUS:", field: "status", placeholder: "Enter status (e.g., Single, Married)" },
-            { label: "SICKNESS:", field: "sickness", placeholder: "Describe the sickness or condition" },
             { label: "CONTACT PERSON:", field: "contactPerson", placeholder: "Enter contact person's name" },
             { label: "CONTACT NUMBER:", field: "contactNumber", placeholder: "Enter contact number", keyboardType: "phone-pad" },
           ].map((item, index) => (
@@ -247,31 +250,66 @@ const SickCallFormScreen = ({ navigation }) => {
             </View>
           ))}
           
-          {/* Date of Visit with Date Picker */}
+          {/* Sickness with N/A Option */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>DATE OF VISIT:</Text>
-            <TouchableOpacity
-              style={styles.dateInput}
-              onPress={() => setShowDatePicker(true)}
-            >
-              <Text style={formData.dateOfVisit ? styles.dateInputText : styles.dateInputPlaceholder}>
-                {formData.dateOfVisit || "Enter date of visit (Tap to select)"}
-              </Text>
-              <Ionicons name="calendar" size={20} color="#666" />
-            </TouchableOpacity>
+            <Text style={styles.label}>SICKNESS:</Text>
+            <View style={styles.inputWithNA}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                value={formData.sickness}
+                onChangeText={(value) => handleChange("sickness", value)}
+                placeholder="Describe the sickness or condition"
+              />
+              <TouchableOpacity
+                style={styles.naButton}
+                onPress={() => handleNAOption("sickness")}
+              >
+                <Text style={styles.naButtonText}>N/A</Text>
+              </TouchableOpacity>
+            </View>
           </View>
           
-          {/* Remarks Field */}
+          {/* Date of Visit with Date Picker and N/A Option */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>DATE OF VISIT:</Text>
+            <View style={styles.dateInputContainer}>
+              <TouchableOpacity
+                style={[styles.dateInput, { flex: 1 }]}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Text style={formData.dateOfVisit ? styles.dateInputText : styles.dateInputPlaceholder}>
+                  {formData.dateOfVisit || "Enter date of visit (Tap to select)"}
+                </Text>
+                <Ionicons name="calendar" size={20} color="#666" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.naButton}
+                onPress={() => handleNAOption("dateOfVisit")}
+              >
+                <Text style={styles.naButtonText}>N/A</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          
+          {/* Remarks with N/A Option */}
           <View style={styles.inputContainer}>
             <Text style={styles.label}>REMARKS:</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={formData.remarks}
-              onChangeText={(value) => handleChange("remarks", value)}
-              placeholder="Additional remarks or notes"
-              multiline={true}
-              numberOfLines={4}
-            />
+            <View style={styles.inputWithNA}>
+              <TextInput
+                style={[styles.input, styles.textArea, { flex: 1 }]}
+                value={formData.remarks}
+                onChangeText={(value) => handleChange("remarks", value)}
+                placeholder="Additional remarks or notes"
+                multiline={true}
+                numberOfLines={4}
+              />
+              <TouchableOpacity
+                style={styles.naButton}
+                onPress={() => handleNAOption("remarks")}
+              >
+                <Text style={styles.naButtonText}>N/A</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Buttons */}
@@ -344,7 +382,7 @@ const SickCallFormScreen = ({ navigation }) => {
                         </View>
                         <View style={demandStyles.feeOption}>
                           <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
-                          <Text style={demandStyles.feeText}>Submit this form with all required documents</Text>
+                          <Text style={demandStyles.feeText}>Submit this form with all required informations</Text>
                         </View>
                         <View style={demandStyles.feeOption}>
                           <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
@@ -471,6 +509,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     fontSize: 16,
   },
+  dateInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
   dateInput: {
     borderWidth: 1, 
     borderColor: '#ddd', 
@@ -488,6 +531,25 @@ const styles = StyleSheet.create({
   dateInputPlaceholder: {
     fontSize: 16,
     color: '#999',
+  },
+  inputWithNA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  naButton: {
+    backgroundColor: '#6c757d',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 60,
+  },
+  naButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
   },
   textArea: {
     height: 100, 

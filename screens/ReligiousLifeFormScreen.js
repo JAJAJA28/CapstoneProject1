@@ -50,7 +50,7 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
     const scrollViewRef = useRef();
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
-    // Date handling functions
+    // Improved Date handling functions for both Android and iOS
     const formatDate = (date) => {
         const day = date.getDate().toString().padStart(2, '0');
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -59,10 +59,17 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
     };
 
     const onDateChange = (event, selectedDate) => {
-        setShowDatePicker(false);
+        if (Platform.OS === 'android') {
+            setShowDatePicker(false);
+        }
         if (selectedDate) {
             handleChange('birthDate', formatDate(selectedDate));
         }
+    };
+
+    // Function to handle N/A option
+    const handleNAOption = (field) => {
+        handleChange(field, "N/A");
     };
 
     const handleChange = (field, value) => {
@@ -85,9 +92,9 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
     const validateForm = () => {
         const newErrors = {};
         
-        // Required field validation
+        // Required field validation (excluding N/A fields)
         const requiredFields = ['fullName', 'birthDate', 'gender', 'address', 'contactNumber', 
-                              'email', 'educationLevel', 'reasonForInterest', 'preferredReligiousOrder'];
+                              'email', 'educationLevel', 'preferredReligiousOrder'];
         
         requiredFields.forEach(field => {
             if (!formData[field] || String(formData[field]).trim() === '') {
@@ -338,16 +345,47 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
                 return (
                     <View key={key} style={styles.inputContainer}>
                         <Text style={styles.label}>{label}</Text>
-                        <TextInput
-                            style={[styles.input, styles.multilineInput, errors[key] ? styles.inputError : null]}
-                            value={formData[key]}
-                            onChangeText={(value) => handleChange(key, value)}
-                            placeholder={`Tell us about your ${label.toLowerCase()}`}
-                            multiline={true}
-                            numberOfLines={4}
-                            textAlignVertical="top"
-                            onFocus={() => setActiveField(key)}
-                        />
+                        <View style={styles.inputWithNA}>
+                            <TextInput
+                                style={[styles.input, styles.multilineInput, errors[key] ? styles.inputError : null, { flex: 1 }]}
+                                value={formData[key]}
+                                onChangeText={(value) => handleChange(key, value)}
+                                placeholder={`Tell us about your ${label.toLowerCase()}`}
+                                multiline={true}
+                                numberOfLines={4}
+                                textAlignVertical="top"
+                                onFocus={() => setActiveField(key)}
+                            />
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption(key)}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
+                        {errors[key] ? <Text style={styles.errorText}>{errors[key]}</Text> : null}
+                    </View>
+                );
+            case 'preferredReligiousOrder':
+                return (
+                    <View key={key} style={styles.inputContainer}>
+                        <Text style={styles.label}>{label}</Text>
+                        <View style={styles.inputWithNA}>
+                            <TextInput
+                                style={[styles.input, errors[key] ? styles.inputError : null, { flex: 1 }]}
+                                value={formData[key]}
+                                onChangeText={(value) => handleChange(key, value)}
+                                placeholder={`Enter your ${label.toLowerCase()}`}
+                                returnKeyType="next"
+                                onFocus={() => setActiveField(key)}
+                            />
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption(key)}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
                         {errors[key] ? <Text style={styles.errorText}>{errors[key]}</Text> : null}
                     </View>
                 );
@@ -385,7 +423,7 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="date"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onDateChange}
                         />
                     )}
@@ -456,27 +494,11 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
                                             <Ionicons name="list" size={20} color="#4a6ea9" />
                                             <Text style={demandStyles.sectionTitle}>Required Documents</Text>
                                         </View>
-                                        <View style={demandStyles.list}>
+                                        <View style={demandStyles.list}>                                                                            
                                             <View style={demandStyles.listItem}>
                                                 <View style={demandStyles.bullet} />
-                                                <Text style={demandStyles.listText}>Birth Certificate</Text>
-                                            </View>
-                                            <View style={demandStyles.listItem}>
-                                                <View style={demandStyles.bullet} />
-                                                <Text style={demandStyles.listText}>Baptismal Certificate</Text>
-                                            </View>
-                                            <View style={demandStyles.listItem}>
-                                                <View style={demandStyles.bullet} />
-                                                <Text style={demandStyles.listText}>Recommendation Letter from Parish Priest</Text>
-                                            </View>
-                                            <View style={demandStyles.listItem}>
-                                                <View style={demandStyles.bullet} />
-                                                <Text style={demandStyles.listText}>Medical Certificate</Text>
-                                            </View>
-                                            <View style={demandStyles.listItem}>
-                                                <View style={demandStyles.bullet} />
-                                                <Text style={demandStyles.listText}>Psychological Evaluation</Text>
-                                            </View>
+                                                <Text style={demandStyles.listText}>Personal Interview from Parish Priest</Text>
+                                            </View>                                                                                
                                         </View>
                                     </View>
                                     
@@ -491,27 +513,7 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
                                             <View style={demandStyles.reminderCard}>
                                                 <View style={demandStyles.reminderHeader}>
                                                     <Ionicons name="information-circle" size={18} color="#3498db" />
-                                                    <Text style={demandStyles.reminderTitle}>Process Steps</Text>
-                                                </View>
-                                                <View style={demandStyles.feeOption}>
-                                                    <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
-                                                    <Text style={demandStyles.feeText}>Initial Inquiry and Application</Text>
-                                                </View>
-                                                <View style={demandStyles.feeOption}>
-                                                    <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
-                                                    <Text style={demandStyles.feeText}>Interviews with Vocation Director</Text>
-                                                </View>
-                                                <View style={demandStyles.feeOption}>
-                                                    <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
-                                                    <Text style={demandStyles.feeText}>Psychological Testing</Text>
-                                                </View>
-                                                <View style={demandStyles.feeOption}>
-                                                    <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
-                                                    <Text style={demandStyles.feeText}>Medical Examination</Text>
-                                                </View>
-                                                <View style={demandStyles.feeOption}>
-                                                    <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
-                                                    <Text style={demandStyles.feeText}>Background Check</Text>
+                                                    <Text style={demandStyles.reminderTitle}>Nothing to see here.</Text>
                                                 </View>
                                             </View>
                                             
@@ -669,6 +671,25 @@ const styles = StyleSheet.create({
     dateInputPlaceholder: {
         fontSize: 16,
         color: '#999',
+    },
+    inputWithNA: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    naButton: {
+        backgroundColor: '#6c757d',
+        paddingHorizontal: 15,
+        paddingVertical: 12,
+        borderRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+        minWidth: 60,
+    },
+    naButtonText: {
+        color: 'white',
+        fontWeight: '600',
+        fontSize: 14,
     },
     inputError: {
         borderColor: '#e74c3c',

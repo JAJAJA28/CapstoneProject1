@@ -29,6 +29,14 @@ export default function StartupScreen() {
   const warningScaleAnim = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
+    Animated.spring(warningScaleAnim, {
+      toValue: 1,
+      friction: 8,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  useEffect(() => {
     if (!showWarning) {
       Animated.parallel([
         Animated.timing(fadeAnim, {
@@ -49,6 +57,11 @@ export default function StartupScreen() {
     setShowWarning(false);
   };
 
+  // SIMPLE NAVIGATION LANG - WAG GUMAMIT NG REPLACE
+  const handleNavigateTo = (screenName) => {
+    navigation.navigate(screenName);
+  };
+
   const renderWarningModal = () => (
     <Modal
       visible={showWarning}
@@ -66,53 +79,110 @@ export default function StartupScreen() {
           ]}
         >
           <View style={styles.warningHeader}>
-            <Ionicons name="warning" size={40} color="#FFA726" />
-            <Text style={styles.warningTitle}>IMPORTANT NOTICE</Text>
+            <Ionicons name="location" size={44} color="#D84315" />
+            <Text style={styles.warningTitle}>GEOGRAPHICAL RESTRICTION</Text>
           </View>
 
-          <ScrollView style={styles.warningContent}>
-            <Text style={styles.warningText}>
-              Ang Mobile Application na ito ay para lamang sa PAROKYA NG SAN RAFAEL ARKANGHEL, MONTALBAN RIZAL, at sa mga nasasakupang lugar ng Parokya.
-            </Text>
-            
-            <View style={styles.warningNote}>
-              <Text style={styles.warningNoteText}>
-                This mobile application is exclusively for the use of St. Raphael the Archangel Parish, Montalban Rizal, and its covered areas.
+          <ScrollView 
+            style={styles.warningContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.importantNotice}>
+              <Ionicons name="alert-circle" size={24} color="#D84315" />
+              <Text style={styles.importantNoticeText}>
+                FOR PARISHIONERS ONLY
               </Text>
             </View>
 
+            <Text style={styles.warningText}>
+              Ang Mobile Application na ito ay para LAMANG sa mga LEGITIMONG PARISHIONER ng PAROKYA NG SAN RAFAEL ARKANGHEL, MONTALBAN RIZAL.
+            </Text>
+            
+            <View style={styles.coverageSection}>
+              <Text style={styles.coverageTitle}>COVERED AREAS (Sakop na Lugar):</Text>
+              
+              <View style={styles.areaList}>
+                <View style={styles.areaItem}>
+                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
+                  <Text style={styles.areaText}>Banay-banay</Text>
+                </View>
+                <View style={styles.areaItem}>
+                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
+                  <Text style={styles.areaText}>Burgos</Text>
+                </View>
+                <View style={styles.areaItem}>
+                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
+                  <Text style={styles.areaText}>Gerónimo</Text>
+                </View>
+                <View style={styles.areaItem}>
+                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
+                  <Text style={styles.areaText}>Macabud</Text>
+                </View>
+                <View style={styles.areaItem}>
+                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
+                  <Text style={styles.areaText}>Manggahan</Text>
+                </View>
+                <View style={styles.areaItem}>
+                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
+                  <Text style={styles.areaText}>Marcy</Text>
+                </View>
+                <View style={styles.areaItem}>
+                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
+                  <Text style={styles.areaText}>Puray</Text>
+                </View>
+                <View style={styles.areaItem}>
+                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
+                  <Text style={styles.areaText}>Rodriguez (Poblacion)</Text>
+                </View>
+                <View style={styles.areaItem}>
+                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
+                  <Text style={styles.areaText}>San Isidro</Text>
+                </View>
+                <View style={styles.areaItem}>
+                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
+                  <Text style={styles.areaText}>San Jose</Text>
+                </View>
+                <View style={styles.areaItem}>
+                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
+                  <Text style={styles.areaText}>San Rafael</Text>
+                </View>
+              </View>
+            </View>
+
             <View style={styles.featuresList}>
-              <Text style={styles.featuresTitle}>Available Features:</Text>
+              <Text style={styles.featuresTitle}>Available Features for Parishioners:</Text>
               <View style={styles.featureItem}>
-                <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
-                <Text style={styles.featureText}>Certificate Requests</Text>
+                <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
+                <Text style={styles.featureText}>Sacrament Reservations</Text>
               </View>
               <View style={styles.featureItem}>
-                <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+                <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
+                <Text style={styles.featureText}>Certificate Issuance</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
                 <Text style={styles.featureText}>Mass Schedules</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
-                <Text style={styles.featureText}>Parish Announcements</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
-                <Text style={styles.featureText}>Religious Resources</Text>
               </View>
             </View>
           </ScrollView>
+
+          <View style={styles.agreementSection}>
+            <Text style={styles.agreementText}>
+              By continuing, I confirm that I am a legitimate parishioner of St. Raphael the Archangel Parish.
+            </Text>
+          </View>
 
           <TouchableOpacity
             style={styles.continueButton}
             onPress={handleContinue}
           >
-            <Text style={styles.continueButtonText}>I UNDERSTAND - CONTINUE</Text>
+            <Ionicons name="checkmark-done-circle" size={20} color="#fff" />
+            <Text style={styles.continueButtonText}>CONFIRM & CONTINUE</Text>
           </TouchableOpacity>
 
-          {/* Footer */}
           <View style={styles.warningFooter}>
             <Text style={styles.footerText}>
-              Bachelor of Science in Computer Technology @SRAP 2025
+              St. Raphael the Archangel Parish • Diocese of Antipolo
             </Text>
           </View>
         </Animated.View>
@@ -151,8 +221,8 @@ export default function StartupScreen() {
         </View>
         
         <View style={styles.welcomeContainer}>
-          <Text style={styles.welcomeText}>Welcome to Our Parish</Text>
-          <Text style={styles.welcomeSubtext}>Join our community and stay connected</Text>
+          <Text style={styles.welcomeText}>Welcome Parishioner!</Text>
+          <Text style={styles.welcomeSubtext}>Access exclusive parish services</Text>
         </View>
       </Animated.View>
 
@@ -165,7 +235,6 @@ export default function StartupScreen() {
           }
         ]}
       >
-        {/* Illustration/Logo */}
         <View style={styles.illustrationContainer}>
           <Image 
             source={require("../assets/IMG3.png")} 
@@ -173,33 +242,32 @@ export default function StartupScreen() {
           />
         </View>
 
-        {/* Tagline */}
         <Text style={styles.appTagline}>
           <Text style={styles.appTaglineBold}>
-            The Official Mobile Application of{'\n'}
+            Exclusive Parish Mobile App{'\n'}
           </Text>
-          St. Raphael the Archangel Parish
+          For St. Raphael the Archangel Parishioners
         </Text>
 
-        {/* Create Account Button */}
+        {/* SIMPLE NAVIGATION LANG */}
         <TouchableOpacity
           style={styles.createAccountButton}
           onPress={() => navigation.navigate('Signup')}
         >
-          <Text style={styles.createAccountButtonText}>Create Account</Text>
+          <Ionicons name="person-add" size={20} color="#fff" />
+          <Text style={styles.createAccountButtonText}>Register as Parishioner</Text>
         </TouchableOpacity>
 
-        {/* Login Button */}
         <TouchableOpacity
           style={styles.loginButton}
           onPress={() => navigation.navigate('Login')}
         >
+          <Ionicons name="log-in" size={20} color="#6A9B6B" />
           <Text style={styles.loginButtonText}>
-            Already have an account?
+            Existing Parishioner Login
           </Text>
         </TouchableOpacity>
 
-        {/* Footer in Main Screen */}
         <View style={styles.mainFooter}>
           <Text style={styles.mainFooterText}>
             Bachelor of Science in Computer Technology @SRAP 2025
@@ -211,6 +279,8 @@ export default function StartupScreen() {
     </SafeAreaView>
   );
 }
+
+// ... (styles remain the same as previous version)
 
 const styles = StyleSheet.create({
   container: {
@@ -302,15 +372,15 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   appTagline: {
-    fontSize: width * 0.045,
+    fontSize: width * 0.04,
     textAlign: "center",
     marginBottom: height * 0.06,
     color: '#636e72',
-    lineHeight: width * 0.06,
+    lineHeight: width * 0.055,
   },
   appTaglineBold: {
     fontWeight: "bold",
-    fontSize: width * 0.05,
+    fontSize: width * 0.045,
     color: '#2d3436',
   },
   createAccountButton: {
@@ -326,11 +396,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 5,
     elevation: 6,
+    flexDirection: 'row',
   },
   createAccountButtonText: {
     color: "white",
-    fontSize: width * 0.045,
-    fontWeight: "bold"
+    fontSize: width * 0.04,
+    fontWeight: "bold",
+    marginLeft: 8,
   },
   loginButton: {
     width: "100%",
@@ -347,11 +419,25 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
+    flexDirection: 'row',
   },
   loginButtonText: {
     color: "#6A9B6B",
-    fontSize: width * 0.04,
-    fontWeight: "bold"
+    fontSize: width * 0.038,
+    fontWeight: "bold",
+    marginLeft: 8,
+  },
+  coverageReminder: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: height * 0.02,
+    paddingHorizontal: 10,
+  },
+  coverageReminderText: {
+    fontSize: width * 0.03,
+    color: '#636e72',
+    marginLeft: 6,
+    fontStyle: 'italic',
   },
   mainFooter: {
     position: 'absolute',
@@ -364,74 +450,159 @@ const styles = StyleSheet.create({
     fontSize: width * 0.03,
     color: '#636e72',
     textAlign: 'center',
+    fontWeight: '500',
+  },
+  mainFooterSubText: {
+    fontSize: width * 0.025,
+    color: '#636e72',
+    textAlign: 'center',
     fontStyle: 'italic',
+    marginTop: 2,
   },
   // Warning Modal Styles
   warningModalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 15,
   },
   warningModal: {
     backgroundColor: 'white',
     borderRadius: 20,
-    padding: 25,
-    width: '90%',
-    maxHeight: '80%',
+    padding: 20,
+    width: '95%',
+    maxHeight: '90%',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
   },
   warningHeader: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 15,
+    paddingBottom: 15,
+    borderBottomWidth: 2,
+    borderBottomColor: '#E0E0E0',
   },
   warningTitle: {
-    fontSize: width * 0.05,
+    fontSize: width * 0.045,
     fontWeight: 'bold',
     color: '#D84315',
-    marginTop: 10,
+    marginTop: 8,
     textAlign: 'center',
+  },
+  importantNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFEBEE',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 15,
+    borderLeftWidth: 4,
+    borderLeftColor: '#D84315',
+  },
+  importantNoticeText: {
+    fontSize: width * 0.038,
+    fontWeight: 'bold',
+    color: '#D84315',
+    marginLeft: 8,
   },
   warningContent: {
     flexGrow: 0,
+    maxHeight: height * 0.5,
   },
   warningText: {
-    fontSize: width * 0.04,
+    fontSize: width * 0.038,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 22,
     color: '#333',
-    marginBottom: 15,
+    marginBottom: 20,
     fontWeight: '600',
   },
-  warningNote: {
-    backgroundColor: '#FFF3E0',
+  coverageSection: {
+    backgroundColor: '#F8F9FA',
     padding: 15,
     borderRadius: 10,
-    marginBottom: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: '#FFA726',
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+  },
+  coverageTitle: {
+    fontSize: width * 0.036,
+    fontWeight: 'bold',
+    color: '#2D3748',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  areaList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  areaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '48%',
+    marginBottom: 8,
+    paddingVertical: 4,
+  },
+  areaText: {
+    fontSize: width * 0.032,
+    color: '#4A5568',
+    marginLeft: 6,
+    fontWeight: '500',
+  },
+  restrictionBox: {
+    backgroundColor: '#FFF5F5',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#FED7D7',
+  },
+  restrictionTitle: {
+    fontSize: width * 0.036,
+    fontWeight: 'bold',
+    color: '#C53030',
+    marginBottom: 8,
+  },
+  restrictionItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  restrictionText: {
+    fontSize: width * 0.032,
+    color: '#744210',
+    marginLeft: 8,
+    flex: 1,
+    lineHeight: 18,
+  },
+  warningNote: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#E3F2FD',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 15,
   },
   warningNoteText: {
-    fontSize: width * 0.035,
-    color: '#E65100',
-    lineHeight: 20,
+    fontSize: width * 0.032,
+    color: '#1565C0',
+    marginLeft: 8,
+    flex: 1,
+    lineHeight: 18,
     fontStyle: 'italic',
   },
   featuresList: {
-    marginBottom: 20,
+    marginBottom: 15,
   },
   featuresTitle: {
-    fontSize: width * 0.04,
+    fontSize: width * 0.036,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#2D3748',
     marginBottom: 10,
   },
   featureItem: {
@@ -441,29 +612,48 @@ const styles = StyleSheet.create({
     paddingLeft: 5,
   },
   featureText: {
-    fontSize: width * 0.035,
-    color: '#333',
+    fontSize: width * 0.032,
+    color: '#2D3748',
     marginLeft: 10,
+    fontWeight: '500',
+  },
+  agreementSection: {
+    backgroundColor: '#F0FFF4',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#C6F6D5',
+  },
+  agreementText: {
+    fontSize: width * 0.032,
+    color: '#22543D',
+    textAlign: 'center',
+    fontWeight: '600',
+    lineHeight: 18,
   },
   continueButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 15,
+    backgroundColor: '#2E7D32',
+    paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 10,
-    shadowColor: '#4CAF50',
+    marginTop: 5,
+    shadowColor: '#2E7D32',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 4,
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   continueButtonText: {
     color: 'white',
-    fontSize: width * 0.04,
+    fontSize: width * 0.038,
     fontWeight: 'bold',
+    marginLeft: 8,
   },
   warningFooter: {
-    marginTop: 20,
+    marginTop: 15,
     paddingTop: 15,
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
@@ -473,6 +663,13 @@ const styles = StyleSheet.create({
     fontSize: width * 0.03,
     color: '#757575',
     textAlign: 'center',
+    fontWeight: '500',
+  },
+  footerSubText: {
+    fontSize: width * 0.025,
+    color: '#9E9E9E',
+    textAlign: 'center',
     fontStyle: 'italic',
+    marginTop: 2,
   },
 });

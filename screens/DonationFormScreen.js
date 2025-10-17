@@ -189,6 +189,15 @@ const DonationFormScreen = () => {
               }
             ]}
           >
+            {/* Donation Image */}
+            <View style={styles.imageContainer}>
+              <Image 
+                source={require("../assets/DONATION.png")} 
+                style={styles.donationImage}
+                resizeMode="contain"
+              />
+            </View>
+
             <Text style={styles.title}>Donation Form</Text>
 
             {/* Full Name */}
@@ -291,6 +300,12 @@ const DonationFormScreen = () => {
                 style={[styles.actionButton, styles.cancelButton]} 
                 onPress={handleCancel}
               >
+                <LinearGradient
+                  colors={['#f8f9fa', '#e9ecef']}
+                  style={[StyleSheet.absoluteFill, { borderRadius: 12 }]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                />
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
 
@@ -299,6 +314,12 @@ const DonationFormScreen = () => {
                 onPress={handleSubmit} 
                 disabled={isSubmitting}
               >
+                <LinearGradient
+                  colors={['#6A9B6B', '#5a8a5b']}
+                  style={[StyleSheet.absoluteFill, { borderRadius: 12 }]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                />
                 {isSubmitting ? (
                   <ActivityIndicator color="white" size="small" />
                 ) : (
@@ -349,6 +370,12 @@ const DonationFormScreen = () => {
               style={[styles.modalButton, styles.clearButton]} 
               onPress={handleClearSignature}
             >
+              <LinearGradient
+                colors={['#dc3545', '#c82333']}
+                style={[StyleSheet.absoluteFill, { borderRadius: 12 }]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              />
               <Ionicons name="trash" size={18} color="#FFF" />
               <Text style={styles.modalButtonText}>Clear</Text>
             </TouchableOpacity>
@@ -357,6 +384,12 @@ const DonationFormScreen = () => {
               style={[styles.modalButton, styles.saveButton]} 
               onPress={() => signatureRef.current?.readSignature()}
             >
+              <LinearGradient
+                colors={['#6A9B6B', '#5a8a5b']}
+                style={[StyleSheet.absoluteFill, { borderRadius: 12 }]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              />
               <Ionicons name="checkmark" size={18} color="#FFF" />
               <Text style={styles.modalButtonText}>Save Signature</Text>
             </TouchableOpacity>
@@ -483,6 +516,16 @@ const styles = StyleSheet.create({
     elevation: 8,
     marginBottom: height * 0.03,
   },
+  // New image container styles
+  imageContainer: {
+    alignItems: 'center',
+    marginBottom: height * 0.02,
+  },
+  donationImage: {
+    width: width * 0.9,
+    height: width * 0.3,
+    borderRadius: 10,
+  },
   title: { 
     fontSize: width * 0.06, 
     fontWeight: "bold", 
@@ -590,17 +633,16 @@ const styles = StyleSheet.create({
     gap: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 6,
+    overflow: 'hidden', // Important for gradient background
   },
   cancelButton: {
-    backgroundColor: 'rgba(106, 155, 107, 0.1)',
-    borderWidth: 2,
-    borderColor: '#6A9B6B',
+    borderWidth: 0, // Remove border since we're using gradient
   },
   submitButton: {
-    backgroundColor: '#6A9B6B',
+    borderWidth: 0, // Remove border since we're using gradient
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -657,12 +699,18 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 12,
     gap: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
+    overflow: 'hidden', // Important for gradient background
   },
   clearButton: {
-    backgroundColor: '#dc3545',
+    borderWidth: 0,
   },
   saveButton: {
-    backgroundColor: '#6A9B6B',
+    borderWidth: 0,
   },
   modalButtonText: {
     color: 'white',

@@ -340,27 +340,30 @@ const ProfileScreen = ({ navigation }) => {
     navigation.navigate("MyReservations", { userEmail: loggedInUser.email });
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      "Confirm Logout",
-      "Are you sure you want to logout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: () => {
-            setIsLoading(true);
-            setTimeout(() => {
-              setLoggedInUser(null);
-              setIsLoading(false);
-            }, 1000);
-          }
+// ProfileScreen.js - LOGOUT FUNCTION ONLY
+const handleLogout = () => {
+  Alert.alert(
+    "Confirm Logout",
+    "Are you sure you want to logout?",
+    [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: () => {
+          setIsLoading(true);
+          setLoggedInUser(null);
+          
+          // SIMPLE NAVIGATION LANG
+          setTimeout(() => {
+            navigation.navigate('Login');
+            setIsLoading(false);
+          }, 500);
         }
-      ]
-    );
-  };
-
+      }
+    ]
+  );
+};
   return (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient

@@ -30,11 +30,21 @@ const BaptismalFormScreen = () => {
   const navigation = useNavigation();
   const fadeAnim = useState(new Animated.Value(0))[0];
 
-  // Date picker states
-  const [showBaptismDatePicker, setShowBaptismDatePicker] = useState(false);
-  const [showPaymentDatePicker, setShowPaymentDatePicker] = useState(false);
-  const [showBirthDatePicker, setShowBirthDatePicker] = useState(false);
-  const [showBaptismTimePicker, setShowBaptismTimePicker] = useState(false);
+  // Date picker states - FIXED: Use single state for all pickers
+  const [showPicker, setShowPicker] = useState({
+    baptismDate: false,
+    baptismTime: false,
+    paymentDate: false,
+    birthDate: false
+  });
+
+  // Current selected dates - FIXED: Store actual Date objects
+  const [currentDates, setCurrentDates] = useState({
+    baptismDate: new Date(),
+    baptismTime: new Date(),
+    paymentDate: new Date(),
+    birthDate: new Date()
+  });
 
   const [formData, setFormData] = useState({
     ContactNumber: "",
@@ -70,8 +80,14 @@ const BaptismalFormScreen = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  // Date handling functions
+  // Function to handle N/A button press for age and address
+  const handleNotApplicable = (fieldName) => {
+    setFormData({ ...formData, [fieldName]: "N/A" });
+  };
+
+  // Date handling functions - FIXED: Better date formatting
   const formatDate = (date) => {
+    if (!date) return "";
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
@@ -79,6 +95,7 @@ const BaptismalFormScreen = () => {
   };
 
   const formatTime = (date) => {
+    if (!date) return "";
     let hours = date.getHours();
     let minutes = date.getMinutes();
     const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -90,44 +107,82 @@ const BaptismalFormScreen = () => {
     return `${hours}:${minutes} ${ampm}`;
   };
 
-  const onBaptismDateChange = (event, selectedDate) => {
-    setShowBaptismDatePicker(false);
+  // FIXED: Unified picker handler
+  const showDatePicker = (type) => {
+    setShowPicker({
+      ...showPicker,
+      [type]: true
+    });
+  };
+
+  // FIXED: Unified date change handler
+  const onDateChange = (event, selectedDate, type) => {
+    // For Android, check if user cancelled
+    if (Platform.OS === 'android') {
+      setShowPicker({
+        baptismDate: false,
+        baptismTime: false,
+        paymentDate: false,
+        birthDate: false
+      });
+    }
+
     if (selectedDate) {
-      handleChange("BaptismDate", formatDate(selectedDate));
+      setCurrentDates({
+        ...currentDates,
+        [type]: selectedDate
+      });
+
+      // Format and set the form data based on type
+      if (type === 'baptismDate') {
+        handleChange("BaptismDate", formatDate(selectedDate));
+      } else if (type === 'paymentDate') {
+        handleChange("PaymentDate", formatDate(selectedDate));
+      } else if (type === 'birthDate') {
+        handleChange("BirthDate", formatDate(selectedDate));
+      } else if (type === 'baptismTime') {
+        handleChange("BaptismTime", formatTime(selectedDate));
+      }
+
+      // For iOS, we need to manually close the picker after selection
+      if (Platform.OS === 'ios') {
+        setTimeout(() => {
+          setShowPicker({
+            baptismDate: false,
+            baptismTime: false,
+            paymentDate: false,
+            birthDate: false
+          });
+        }, 500);
+      }
     }
   };
 
-  const onPaymentDateChange = (event, selectedDate) => {
-    setShowPaymentDatePicker(false);
-    if (selectedDate) {
-      handleChange("PaymentDate", formatDate(selectedDate));
-    }
-  };
-
-  const onBirthDateChange = (event, selectedDate) => {
-    setShowBirthDatePicker(false);
-    if (selectedDate) {
-      handleChange("BirthDate", formatDate(selectedDate));
-    }
-  };
-
-  const onBaptismTimeChange = (event, selectedDate) => {
-    setShowBaptismTimePicker(false);
-    if (selectedDate) {
-      handleChange("BaptismTime", formatTime(selectedDate));
-    }
+  // FIXED: Handle iOS modal close
+  const handleIOSPickerClose = () => {
+    setShowPicker({
+      baptismDate: false,
+      baptismTime: false,
+      paymentDate: false,
+      birthDate: false
+    });
   };
 
   const handleSubmit = async () => {
-    const isEmptyField = Object.values(formData).some(
-      (value) =>
-        (typeof value === "string" && value.trim() === "") ||
-        value === null ||
-        value === undefined
+    // Check only required fields, allow N/A for optional fields
+    const requiredFields = [
+      "ContactNumber", "BaptismDate", "BaptismTime", "PaymentDate",
+      "ChildName", "Religion", "BirthDate", "BirthPlace",
+      "FatherName", "fatherBirthPlace", "MotherName", "MotherBirthPlace",
+      "Address", "MarriageType", "ninong1", "ninang1"
+    ];
+
+    const isEmptyRequiredField = requiredFields.some(
+      (field) => !formData[field] || formData[field].trim() === ""
     );
 
-    if (isEmptyField) {
-      Alert.alert("Incomplete Form", "Please fill out all fields before submitting.");
+    if (isEmptyRequiredField) {
+      Alert.alert("Incomplete Form", "Please fill out all required fields before submitting.");
       return;
     }
 
@@ -210,6 +265,43 @@ const BaptismalFormScreen = () => {
     </View>
   );
 
+  // Component for age input with N/A button
+  const AgeInputWithNA = ({ placeholder, value, onChangeText, fieldName }) => (
+    <View style={styles.inputWithButtonContainer}>
+      <TextInput 
+        style={styles.inputWithButton} 
+        placeholder={placeholder} 
+        keyboardType="numeric"
+        value={value}
+        onChangeText={onChangeText} 
+      />
+      <TouchableOpacity 
+        style={styles.naButton}
+        onPress={() => handleNotApplicable(fieldName)}
+      >
+        <Text style={styles.naButtonText}>N/A</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  // Component for address input with N/A button
+  const AddressInputWithNA = ({ placeholder, value, onChangeText, fieldName }) => (
+    <View style={styles.inputWithButtonContainer}>
+      <TextInput 
+        style={styles.inputWithButton} 
+        placeholder={placeholder} 
+        value={value}
+        onChangeText={onChangeText} 
+      />
+      <TouchableOpacity 
+        style={styles.naButton}
+        onPress={() => handleNotApplicable(fieldName)}
+      >
+        <Text style={styles.naButtonText}>N/A</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -226,41 +318,41 @@ const BaptismalFormScreen = () => {
           <Text style={styles.sectionHeader}>📞 Contact & Schedule</Text>
           <TextInput 
             style={styles.input} 
-            placeholder="Contact Number" 
+            placeholder="Contact Number *" 
             keyboardType="phone-pad"
             value={formData.ContactNumber}
             onChangeText={(text) => handleChange("ContactNumber", text)} 
           />
           
-          {/* Baptism Date with Date Picker */}
+          {/* Baptism Date with Date Picker - FIXED */}
           <TouchableOpacity 
             style={styles.dateInput}
-            onPress={() => setShowBaptismDatePicker(true)}
+            onPress={() => showDatePicker('baptismDate')}
           >
             <Text style={formData.BaptismDate ? styles.dateInputText : styles.dateInputPlaceholder}>
-              {formData.BaptismDate || "Baptism Date (Tap to select)"}
+              {formData.BaptismDate || "Baptism Date * (Tap to select)"}
             </Text>
             <Ionicons name="calendar" size={20} color="#666" />
           </TouchableOpacity>
 
-          {/* Baptism Time with Time Picker */}
+          {/* Baptism Time with Time Picker - FIXED */}
           <TouchableOpacity 
             style={styles.dateInput}
-            onPress={() => setShowBaptismTimePicker(true)}
+            onPress={() => showDatePicker('baptismTime')}
           >
             <Text style={formData.BaptismTime ? styles.dateInputText : styles.dateInputPlaceholder}>
-              {formData.BaptismTime || "Baptism Time (Tap to select)"}
+              {formData.BaptismTime || "Baptism Time * (Tap to select)"}
             </Text>
             <Ionicons name="time" size={20} color="#666" />
           </TouchableOpacity>
 
-          {/* Payment Date with Date Picker */}
+          {/* Payment Date with Date Picker - FIXED */}
           <TouchableOpacity 
             style={styles.dateInput}
-            onPress={() => setShowPaymentDatePicker(true)}
+            onPress={() => showDatePicker('paymentDate')}
           >
             <Text style={formData.PaymentDate ? styles.dateInputText : styles.dateInputPlaceholder}>
-              {formData.PaymentDate || "Payment Date (Tap to select)"}
+              {formData.PaymentDate || "Payment Date * (Tap to select)"}
             </Text>
             <Ionicons name="calendar" size={20} color="#666" />
           </TouchableOpacity>
@@ -269,31 +361,31 @@ const BaptismalFormScreen = () => {
           <Text style={styles.sectionHeader}>👶 Child's Information</Text>
           <TextInput 
             style={styles.input} 
-            placeholder="Child's Name" 
+            placeholder="Child's Name *" 
             value={formData.ChildName}
             onChangeText={(text) => handleChange("ChildName", text)} 
           />
           <TextInput 
             style={styles.input} 
-            placeholder="Religion" 
+            placeholder="Religion *" 
             value={formData.Religion}
             onChangeText={(text) => handleChange("Religion", text)} 
           />
           
-          {/* Birth Date with Date Picker */}
+          {/* Birth Date with Date Picker - FIXED */}
           <TouchableOpacity 
             style={styles.dateInput}
-            onPress={() => setShowBirthDatePicker(true)}
+            onPress={() => showDatePicker('birthDate')}
           >
             <Text style={formData.BirthDate ? styles.dateInputText : styles.dateInputPlaceholder}>
-              {formData.BirthDate || "Birth Date (Tap to select)"}
+              {formData.BirthDate || "Birth Date * (Tap to select)"}
             </Text>
             <Ionicons name="calendar" size={20} color="#666" />
           </TouchableOpacity>
 
           <TextInput 
             style={styles.input} 
-            placeholder="Birth Place" 
+            placeholder="Birth Place *" 
             value={formData.BirthPlace}
             onChangeText={(text) => handleChange("BirthPlace", text)} 
           />
@@ -302,25 +394,25 @@ const BaptismalFormScreen = () => {
           <Text style={styles.sectionHeader}>👨‍👩‍👧 Parents' Information</Text>
           <TextInput 
             style={styles.input} 
-            placeholder="Father's Name" 
+            placeholder="Father's Name *" 
             value={formData.FatherName}
             onChangeText={(text) => handleChange("FatherName", text)} 
           />
           <TextInput 
             style={styles.input} 
-            placeholder="Father's Birth Place" 
+            placeholder="Father's Birth Place *" 
             value={formData.fatherBirthPlace}
             onChangeText={(text) => handleChange("fatherBirthPlace", text)} 
           />
           <TextInput 
             style={styles.input} 
-            placeholder="Mother's Name" 
+            placeholder="Mother's Name *" 
             value={formData.MotherName}
             onChangeText={(text) => handleChange("MotherName", text)} 
           />
           <TextInput 
             style={styles.input} 
-            placeholder="Mother's Birth Place" 
+            placeholder="Mother's Birth Place *" 
             value={formData.MotherBirthPlace}
             onChangeText={(text) => handleChange("MotherBirthPlace", text)} 
           />
@@ -329,13 +421,13 @@ const BaptismalFormScreen = () => {
           <Text style={styles.sectionHeader}>🏠 Address & Marriage</Text>
           <TextInput 
             style={styles.input} 
-            placeholder="Address" 
+            placeholder="Address *" 
             value={formData.Address}
             onChangeText={(text) => handleChange("Address", text)} 
           />
           <TextInput 
             style={styles.input} 
-            placeholder="Marriage Type" 
+            placeholder="Marriage Type *" 
             value={formData.MarriageType}
             onChangeText={(text) => handleChange("MarriageType", text)} 
           />
@@ -344,124 +436,243 @@ const BaptismalFormScreen = () => {
           <Text style={styles.sectionHeader}>🎉 Sponsors</Text>
 
           {/* Ninong 1 */}
+          <Text style={styles.sponsorSubHeader}>Ninong 1 (Required)</Text>
           <TextInput 
             style={styles.input} 
-            placeholder="NINONG SA BINYAG 1" 
+            placeholder="NINONG SA BINYAG 1 *" 
             value={formData.ninong1}
             onChangeText={(text) => handleChange("ninong1", text)} 
           />
-          <TextInput 
-            style={styles.input} 
-            placeholder="EDAD" 
-            keyboardType="numeric"
+          
+          <AgeInputWithNA
+            placeholder="EDAD (Age)"
             value={formData.ninong1_age}
-            onChangeText={(text) => handleChange("ninong1_age", text)} 
+            onChangeText={(text) => handleChange("ninong1_age", text)}
+            fieldName="ninong1_age"
           />
-          <TextInput 
-            style={styles.input} 
-            placeholder="TIRAHAN" 
+          
+          <AddressInputWithNA
+            placeholder="TIRAHAN (Address)"
             value={formData.ninong1_address}
-            onChangeText={(text) => handleChange("ninong1_address", text)} 
+            onChangeText={(text) => handleChange("ninong1_address", text)}
+            fieldName="ninong1_address"
           />
 
           {/* Ninang 1 */}
+          <Text style={styles.sponsorSubHeader}>Ninang 1 (Required)</Text>
           <TextInput 
             style={styles.input} 
-            placeholder="NINANG SA BINYAG 1" 
+            placeholder="NINANG SA BINYAG 1 *" 
             value={formData.ninang1}
             onChangeText={(text) => handleChange("ninang1", text)} 
           />
-          <TextInput 
-            style={styles.input} 
-            placeholder="EDAD" 
-            keyboardType="numeric"
+          
+          <AgeInputWithNA
+            placeholder="EDAD (Age)"
             value={formData.ninang1_age}
-            onChangeText={(text) => handleChange("ninang1_age", text)} 
+            onChangeText={(text) => handleChange("ninang1_age", text)}
+            fieldName="ninang1_age"
           />
-          <TextInput 
-            style={styles.input} 
-            placeholder="TIRAHAN" 
+          
+          <AddressInputWithNA
+            placeholder="TIRAHAN (Address)"
             value={formData.ninang1_address}
-            onChangeText={(text) => handleChange("ninang1_address", text)} 
+            onChangeText={(text) => handleChange("ninang1_address", text)}
+            fieldName="ninang1_address"
           />
 
           {/* Ninong 2 */}
+          <Text style={styles.sponsorSubHeader}>Ninong 2 (Optional)</Text>
           <TextInput 
             style={styles.input} 
             placeholder="NINONG SA BINYAG 2" 
             value={formData.ninong2}
             onChangeText={(text) => handleChange("ninong2", text)} 
           />
-          <TextInput 
-            style={styles.input} 
-            placeholder="EDAD" 
-            keyboardType="numeric"
+          
+          <AgeInputWithNA
+            placeholder="EDAD (Age)"
             value={formData.ninong2_age}
-            onChangeText={(text) => handleChange("ninong2_age", text)} 
+            onChangeText={(text) => handleChange("ninong2_age", text)}
+            fieldName="ninong2_age"
           />
-          <TextInput 
-            style={styles.input} 
-            placeholder="TIRAHAN" 
+          
+          <AddressInputWithNA
+            placeholder="TIRAHAN (Address)"
             value={formData.ninong2_address}
-            onChangeText={(text) => handleChange("ninong2_address", text)} 
+            onChangeText={(text) => handleChange("ninong2_address", text)}
+            fieldName="ninong2_address"
           />
 
           {/* Ninang 2 */}
+          <Text style={styles.sponsorSubHeader}>Ninang 2 (Optional)</Text>
           <TextInput 
             style={styles.input} 
             placeholder="NINANG SA BINYAG 2" 
             value={formData.ninang2}
             onChangeText={(text) => handleChange("ninang2", text)} 
           />
-          <TextInput 
-            style={styles.input} 
-            placeholder="EDAD" 
-            keyboardType="numeric"
+          
+          <AgeInputWithNA
+            placeholder="EDAD (Age)"
             value={formData.ninang2_age}
-            onChangeText={(text) => handleChange("ninang2_age", text)} 
+            onChangeText={(text) => handleChange("ninang2_age", text)}
+            fieldName="ninang2_age"
           />
-          <TextInput 
-            style={styles.input} 
-            placeholder="TIRAHAN" 
+          
+          <AddressInputWithNA
+            placeholder="TIRAHAN (Address)"
             value={formData.ninang2_address}
-            onChangeText={(text) => handleChange("ninang2_address", text)} 
+            onChangeText={(text) => handleChange("ninang2_address", text)}
+            fieldName="ninang2_address"
           />
 
-          {/* Date Pickers */}
-          {showBaptismDatePicker && (
-            <DateTimePicker
-              value={new Date()}
-              mode="date"
-              display="default"
-              onChange={onBaptismDateChange}
-            />
+          {/* Required fields note */}
+          <Text style={styles.requiredNote}>* Required fields</Text>
+
+          {/* Date Pickers - FIXED: Better implementation */}
+          {showPicker.baptismDate && (
+            Platform.OS === 'ios' ? (
+              <Modal
+                visible={showPicker.baptismDate}
+                transparent={true}
+                animationType="slide"
+              >
+                <View style={styles.iosPickerContainer}>
+                  <View style={styles.iosPickerHeader}>
+                    <TouchableOpacity onPress={handleIOSPickerClose}>
+                      <Text style={styles.iosPickerCancel}>Cancel</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.iosPickerTitle}>Select Baptism Date</Text>
+                    <TouchableOpacity onPress={() => onDateChange(null, currentDates.baptismDate, 'baptismDate')}>
+                      <Text style={styles.iosPickerDone}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker
+                    value={currentDates.baptismDate}
+                    mode="date"
+                    display="spinner"
+                    onChange={(event, date) => setCurrentDates({...currentDates, baptismDate: date})}
+                    style={styles.iosPicker}
+                  />
+                </View>
+              </Modal>
+            ) : (
+              <DateTimePicker
+                value={currentDates.baptismDate}
+                mode="date"
+                display="default"
+                onChange={(event, date) => onDateChange(event, date, 'baptismDate')}
+              />
+            )
           )}
 
-          {showPaymentDatePicker && (
-            <DateTimePicker
-              value={new Date()}
-              mode="date"
-              display="default"
-              onChange={onPaymentDateChange}
-            />
+          {showPicker.baptismTime && (
+            Platform.OS === 'ios' ? (
+              <Modal
+                visible={showPicker.baptismTime}
+                transparent={true}
+                animationType="slide"
+              >
+                <View style={styles.iosPickerContainer}>
+                  <View style={styles.iosPickerHeader}>
+                    <TouchableOpacity onPress={handleIOSPickerClose}>
+                      <Text style={styles.iosPickerCancel}>Cancel</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.iosPickerTitle}>Select Baptism Time</Text>
+                    <TouchableOpacity onPress={() => onDateChange(null, currentDates.baptismTime, 'baptismTime')}>
+                      <Text style={styles.iosPickerDone}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker
+                    value={currentDates.baptismTime}
+                    mode="time"
+                    display="spinner"
+                    onChange={(event, date) => setCurrentDates({...currentDates, baptismTime: date})}
+                    style={styles.iosPicker}
+                  />
+                </View>
+              </Modal>
+            ) : (
+              <DateTimePicker
+                value={currentDates.baptismTime}
+                mode="time"
+                display="default"
+                onChange={(event, date) => onDateChange(event, date, 'baptismTime')}
+              />
+            )
           )}
 
-          {showBirthDatePicker && (
-            <DateTimePicker
-              value={new Date()}
-              mode="date"
-              display="default"
-              onChange={onBirthDateChange}
-            />
+          {showPicker.paymentDate && (
+            Platform.OS === 'ios' ? (
+              <Modal
+                visible={showPicker.paymentDate}
+                transparent={true}
+                animationType="slide"
+              >
+                <View style={styles.iosPickerContainer}>
+                  <View style={styles.iosPickerHeader}>
+                    <TouchableOpacity onPress={handleIOSPickerClose}>
+                      <Text style={styles.iosPickerCancel}>Cancel</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.iosPickerTitle}>Select Payment Date</Text>
+                    <TouchableOpacity onPress={() => onDateChange(null, currentDates.paymentDate, 'paymentDate')}>
+                      <Text style={styles.iosPickerDone}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker
+                    value={currentDates.paymentDate}
+                    mode="date"
+                    display="spinner"
+                    onChange={(event, date) => setCurrentDates({...currentDates, paymentDate: date})}
+                    style={styles.iosPicker}
+                  />
+                </View>
+              </Modal>
+            ) : (
+              <DateTimePicker
+                value={currentDates.paymentDate}
+                mode="date"
+                display="default"
+                onChange={(event, date) => onDateChange(event, date, 'paymentDate')}
+              />
+            )
           )}
 
-          {showBaptismTimePicker && (
-            <DateTimePicker
-              value={new Date()}
-              mode="time"
-              display="default"
-              onChange={onBaptismTimeChange}
-            />
+          {showPicker.birthDate && (
+            Platform.OS === 'ios' ? (
+              <Modal
+                visible={showPicker.birthDate}
+                transparent={true}
+                animationType="slide"
+              >
+                <View style={styles.iosPickerContainer}>
+                  <View style={styles.iosPickerHeader}>
+                    <TouchableOpacity onPress={handleIOSPickerClose}>
+                      <Text style={styles.iosPickerCancel}>Cancel</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.iosPickerTitle}>Select Birth Date</Text>
+                    <TouchableOpacity onPress={() => onDateChange(null, currentDates.birthDate, 'birthDate')}>
+                      <Text style={styles.iosPickerDone}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker
+                    value={currentDates.birthDate}
+                    mode="date"
+                    display="spinner"
+                    onChange={(event, date) => setCurrentDates({...currentDates, birthDate: date})}
+                    style={styles.iosPicker}
+                  />
+                </View>
+              </Modal>
+            ) : (
+              <DateTimePicker
+                value={currentDates.birthDate}
+                mode="date"
+                display="default"
+                onChange={(event, date) => onDateChange(event, date, 'birthDate')}
+              />
+            )
           )}
 
           {/* Buttons */}
@@ -489,7 +700,7 @@ const BaptismalFormScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Improved Requirements Modal */}
+          {/* Requirements Modal */}
           <Modal visible={requirementsModalVisible} animationType="fade" transparent>
             <View style={demandStyles.modalContainer}>
               <View style={demandStyles.modalContent}>
@@ -520,11 +731,11 @@ const BaptismalFormScreen = () => {
                       </View>
                       <View style={demandStyles.listItem}>
                         <View style={demandStyles.bullet} />
-                        <Text style={demandStyles.listText}>List of Godparents (at least 2, maximum of 5 pairs)</Text>
+                        <Text style={demandStyles.listText}>Accomplished Baptismal Form</Text>
                       </View>
                       <View style={demandStyles.listItem}>
                         <View style={demandStyles.bullet} />
-                        <Text style={demandStyles.listText}>Baptismal Seminar Attendance</Text>
+                        <Text style={demandStyles.listText}>Need to attend a Seminar for Baptism</Text>
                       </View>
                     </View>
                   </View>
@@ -664,14 +875,62 @@ const BaptismalFormScreen = () => {
   );
 };
 
+// Add these new styles
 const styles = StyleSheet.create({
-  container: { padding: 20, backgroundColor: "#fff" },
+  inputWithButtonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  inputWithButton: {
+    flex: 1,
+    height: 50,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    backgroundColor: 'white',
+    marginRight: 8,
+  },
+  naButton: {
+    backgroundColor: '#6A9B6B',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  naButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+  sponsorSubHeader: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4a6ea9',
+    marginBottom: 8,
+    marginTop: 8,
+  },
+  requiredNote: {
+    fontSize: 12,
+    color: '#e74c3c',
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+    fontStyle: 'italic',
+  },
+  container: { 
+    padding: 20, 
+    backgroundColor: "#fff",
+    paddingBottom: 40 
+  },
   header: {
     fontSize: 30,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 20,
-    marginTop: height * 0.08,
+    marginTop: height * 0.05,
     color: "#2c3e50",
   },
   sectionHeader: { 
@@ -688,6 +947,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 10,
     backgroundColor: "#f9f9f9",
+    fontSize: 16,
   },
   dateInput: {
     borderWidth: 1,
@@ -746,9 +1006,40 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
+  // Add these new styles for iOS picker
+  iosPickerContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  iosPickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    padding: 16,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  iosPickerCancel: {
+    color: '#007AFF',
+    fontSize: 16,
+  },
+  iosPickerDone: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  iosPickerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+  },
+  iosPicker: {
+    backgroundColor: 'white',
+    height: 200,
+  },
 });
-
-// ... (keep the existing previewStyles and demandStyles objects exactly as they are)
 
 const previewStyles = StyleSheet.create({
   modalContainer: {

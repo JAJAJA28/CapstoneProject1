@@ -64,7 +64,7 @@ const ConfirmationForm = () => {
         email: loggedInUser?.email || "guest@example.com"
     });
 
-    // Date handling functions
+    // Improved Date handling functions for both Android and iOS
     const formatDate = (date) => {
         const day = date.getDate().toString().padStart(2, '0');
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -85,31 +85,44 @@ const ConfirmationForm = () => {
     };
 
     const onConfirmationDateChange = (event, selectedDate) => {
-        setShowConfirmationDatePicker(false);
+        if (Platform.OS === 'android') {
+            setShowConfirmationDatePicker(false);
+        }
         if (selectedDate) {
             handleChange("petsaNgKumpil", formatDate(selectedDate));
         }
     };
 
     const onFirstCommunionDateChange = (event, selectedDate) => {
-        setShowFirstCommunionDatePicker(false);
+        if (Platform.OS === 'android') {
+            setShowFirstCommunionDatePicker(false);
+        }
         if (selectedDate) {
             handleChange("petsaNg1stCommunion", formatDate(selectedDate));
         }
     };
 
     const onBaptismDateChange = (event, selectedDate) => {
-        setShowBaptismDatePicker(false);
+        if (Platform.OS === 'android') {
+            setShowBaptismDatePicker(false);
+        }
         if (selectedDate) {
             handleChange("petsaNgBinyag", formatDate(selectedDate));
         }
     };
 
     const onTimeChange = (event, selectedDate) => {
-        setShowTimePicker(false);
+        if (Platform.OS === 'android') {
+            setShowTimePicker(false);
+        }
         if (selectedDate) {
             handleChange("oras", formatTime(selectedDate));
         }
+    };
+
+    // Function to handle N/A option
+    const handleNAOption = (field) => {
+        handleChange(field, "N/A");
     };
 
     const handleChange = (name, value) => {
@@ -246,7 +259,7 @@ const ConfirmationForm = () => {
                             <DateTimePicker
                                 value={new Date()}
                                 mode="date"
-                                display="default"
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                                 onChange={onConfirmationDateChange}
                             />
                         )}
@@ -255,7 +268,7 @@ const ConfirmationForm = () => {
                             <DateTimePicker
                                 value={new Date()}
                                 mode="date"
-                                display="default"
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                                 onChange={onFirstCommunionDateChange}
                             />
                         )}
@@ -264,7 +277,7 @@ const ConfirmationForm = () => {
                             <DateTimePicker
                                 value={new Date()}
                                 mode="date"
-                                display="default"
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                                 onChange={onBaptismDateChange}
                             />
                         )}
@@ -273,7 +286,7 @@ const ConfirmationForm = () => {
                             <DateTimePicker
                                 value={new Date()}
                                 mode="time"
-                                display="default"
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                                 onChange={onTimeChange}
                             />
                         )}
@@ -308,16 +321,24 @@ const ConfirmationForm = () => {
                                 <Ionicons name="calendar" size={20} color="#666" />
                             </TouchableOpacity>
 
-                            {/* First Communion Date with Date Picker */}
-                            <TouchableOpacity
-                                style={styles.dateInput}
-                                onPress={() => setShowFirstCommunionDatePicker(true)}
-                            >
-                                <Text style={formData.petsaNg1stCommunion ? styles.dateInputText : styles.dateInputPlaceholder}>
-                                    {formData.petsaNg1stCommunion || "First Communion Date (Tap to select)"}
-                                </Text>
-                                <Ionicons name="calendar" size={20} color="#666" />
-                            </TouchableOpacity>
+                            {/* First Communion Date with Date Picker and N/A Option */}
+                            <View style={styles.dateInputContainer}>
+                                <TouchableOpacity
+                                    style={[styles.dateInput, { flex: 1 }]}
+                                    onPress={() => setShowFirstCommunionDatePicker(true)}
+                                >
+                                    <Text style={formData.petsaNg1stCommunion ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                        {formData.petsaNg1stCommunion || "First Communion Date (Tap to select)"}
+                                    </Text>
+                                    <Ionicons name="calendar" size={20} color="#666" />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.naButton}
+                                    onPress={() => handleNAOption("petsaNg1stCommunion")}
+                                >
+                                    <Text style={styles.naButtonText}>N/A</Text>
+                                </TouchableOpacity>
+                            </View>
 
                             {/* Time with Time Picker */}
                             <TouchableOpacity
@@ -350,20 +371,40 @@ const ConfirmationForm = () => {
                                 value={formData.tirahan}
                                 onChangeText={(text) => handleChange("tirahan", text)} 
                             />
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder="PARISH" 
-                                placeholderTextColor="#999"
-                                value={formData.tagaSaangParokya}
-                                onChangeText={(text) => handleChange("tagaSaangParokya", text)} 
-                            />
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder="PROVINCE" 
-                                placeholderTextColor="#999"
-                                value={formData.saangLalawigan}
-                                onChangeText={(text) => handleChange("saangLalawigan", text)} 
-                            />
+                            
+                            {/* Parish with N/A Option */}
+                            <View style={styles.inputWithNA}>
+                                <TextInput 
+                                    style={[styles.input, { flex: 1 }]} 
+                                    placeholder="PARISH" 
+                                    placeholderTextColor="#999"
+                                    value={formData.tagaSaangParokya}
+                                    onChangeText={(text) => handleChange("tagaSaangParokya", text)} 
+                                />
+                                <TouchableOpacity
+                                    style={styles.naButton}
+                                    onPress={() => handleNAOption("tagaSaangParokya")}
+                                >
+                                    <Text style={styles.naButtonText}>N/A</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Province with N/A Option */}
+                            <View style={styles.inputWithNA}>
+                                <TextInput 
+                                    style={[styles.input, { flex: 1 }]} 
+                                    placeholder="PROVINCE" 
+                                    placeholderTextColor="#999"
+                                    value={formData.saangLalawigan}
+                                    onChangeText={(text) => handleChange("saangLalawigan", text)} 
+                                />
+                                <TouchableOpacity
+                                    style={styles.naButton}
+                                    onPress={() => handleNAOption("saangLalawigan")}
+                                >
+                                    <Text style={styles.naButtonText}>N/A</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
 
                         <View style={styles.formSection}>
@@ -378,27 +419,57 @@ const ConfirmationForm = () => {
                                 value={formData.pangalanNgAma}
                                 onChangeText={(text) => handleChange("pangalanNgAma", text)} 
                             />
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder="FATHER'S BIRTHPLACE" 
-                                placeholderTextColor="#999"
-                                value={formData.lugarNgKapanganakanAma}
-                                onChangeText={(text) => handleChange("lugarNgKapanganakanAma", text)} 
-                            />
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder="FATHER'S PARISH" 
-                                placeholderTextColor="#999"
-                                value={formData.tagaSaangParokyaAma}
-                                onChangeText={(text) => handleChange("tagaSaangParokyaAma", text)} 
-                            />
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder="FATHER'S PROVINCE" 
-                                placeholderTextColor="#999"
-                                value={formData.saangLalawiganAma}
-                                onChangeText={(text) => handleChange("saangLalawiganAma", text)} 
-                            />
+                            
+                            {/* Father's Birthplace with N/A Option */}
+                            <View style={styles.inputWithNA}>
+                                <TextInput 
+                                    style={[styles.input, { flex: 1 }]} 
+                                    placeholder="FATHER'S BIRTHPLACE" 
+                                    placeholderTextColor="#999"
+                                    value={formData.lugarNgKapanganakanAma}
+                                    onChangeText={(text) => handleChange("lugarNgKapanganakanAma", text)} 
+                                />
+                                <TouchableOpacity
+                                    style={styles.naButton}
+                                    onPress={() => handleNAOption("lugarNgKapanganakanAma")}
+                                >
+                                    <Text style={styles.naButtonText}>N/A</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Father's Parish with N/A Option */}
+                            <View style={styles.inputWithNA}>
+                                <TextInput 
+                                    style={[styles.input, { flex: 1 }]} 
+                                    placeholder="FATHER'S PARISH" 
+                                    placeholderTextColor="#999"
+                                    value={formData.tagaSaangParokyaAma}
+                                    onChangeText={(text) => handleChange("tagaSaangParokyaAma", text)} 
+                                />
+                                <TouchableOpacity
+                                    style={styles.naButton}
+                                    onPress={() => handleNAOption("tagaSaangParokyaAma")}
+                                >
+                                    <Text style={styles.naButtonText}>N/A</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Father's Province with N/A Option */}
+                            <View style={styles.inputWithNA}>
+                                <TextInput 
+                                    style={[styles.input, { flex: 1 }]} 
+                                    placeholder="FATHER'S PROVINCE" 
+                                    placeholderTextColor="#999"
+                                    value={formData.saangLalawiganAma}
+                                    onChangeText={(text) => handleChange("saangLalawiganAma", text)} 
+                                />
+                                <TouchableOpacity
+                                    style={styles.naButton}
+                                    onPress={() => handleNAOption("saangLalawiganAma")}
+                                >
+                                    <Text style={styles.naButtonText}>N/A</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
 
                         <View style={styles.formSection}>
@@ -413,27 +484,57 @@ const ConfirmationForm = () => {
                                 value={formData.pangalanNgIna}
                                 onChangeText={(text) => handleChange("pangalanNgIna", text)} 
                             />
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder="MOTHER'S BIRTHPLACE" 
-                                placeholderTextColor="#999"
-                                value={formData.lugarNgKapanganakanIna}
-                                onChangeText={(text) => handleChange("lugarNgKapanganakanIna", text)} 
-                            />
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder="MOTHER'S PARISH" 
-                                placeholderTextColor="#999"
-                                value={formData.tagaSaangParokyaIna}
-                                onChangeText={(text) => handleChange("tagaSaangParokyaIna", text)} 
-                            />
-                           <TextInput 
-                                style={styles.input} 
-                                placeholder="MOTHER'S PROVINCE" 
-                                placeholderTextColor="#999"
-                                value={formData.saangLalawiganIna}
-                                onChangeText={(text) => handleChange("saangLalawiganIna", text)} 
-                            />
+                            
+                            {/* Mother's Birthplace with N/A Option */}
+                            <View style={styles.inputWithNA}>
+                                <TextInput 
+                                    style={[styles.input, { flex: 1 }]} 
+                                    placeholder="MOTHER'S BIRTHPLACE" 
+                                    placeholderTextColor="#999"
+                                    value={formData.lugarNgKapanganakanIna}
+                                    onChangeText={(text) => handleChange("lugarNgKapanganakanIna", text)} 
+                                />
+                                <TouchableOpacity
+                                    style={styles.naButton}
+                                    onPress={() => handleNAOption("lugarNgKapanganakanIna")}
+                                >
+                                    <Text style={styles.naButtonText}>N/A</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Mother's Parish with N/A Option */}
+                            <View style={styles.inputWithNA}>
+                                <TextInput 
+                                    style={[styles.input, { flex: 1 }]} 
+                                    placeholder="MOTHER'S PARISH" 
+                                    placeholderTextColor="#999"
+                                    value={formData.tagaSaangParokyaIna}
+                                    onChangeText={(text) => handleChange("tagaSaangParokyaIna", text)} 
+                                />
+                                <TouchableOpacity
+                                    style={styles.naButton}
+                                    onPress={() => handleNAOption("tagaSaangParokyaIna")}
+                                >
+                                    <Text style={styles.naButtonText}>N/A</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Mother's Province with N/A Option */}
+                            <View style={styles.inputWithNA}>
+                                <TextInput 
+                                    style={[styles.input, { flex: 1 }]} 
+                                    placeholder="MOTHER'S PROVINCE" 
+                                    placeholderTextColor="#999"
+                                    value={formData.saangLalawiganIna}
+                                    onChangeText={(text) => handleChange("saangLalawiganIna", text)} 
+                                />
+                                <TouchableOpacity
+                                    style={styles.naButton}
+                                    onPress={() => handleNAOption("saangLalawiganIna")}
+                                >
+                                    <Text style={styles.naButtonText}>N/A</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
 
                         <View style={styles.formSection}>
@@ -442,31 +543,58 @@ const ConfirmationForm = () => {
                                 <Text style={styles.sectionHeaderText}>Baptism Information</Text>
                             </View>
                             
-                            {/* Baptism Date with Date Picker */}
-                            <TouchableOpacity
-                                style={styles.dateInput}
-                                onPress={() => setShowBaptismDatePicker(true)}
-                            >
-                                <Text style={formData.petsaNgBinyag ? styles.dateInputText : styles.dateInputPlaceholder}>
-                                    {formData.petsaNgBinyag || "Baptism Date (Tap to select)"}
-                                </Text>
-                                <Ionicons name="calendar" size={20} color="#666" />
-                            </TouchableOpacity>
+                            {/* Baptism Date with Date Picker and N/A Option */}
+                            <View style={styles.dateInputContainer}>
+                                <TouchableOpacity
+                                    style={[styles.dateInput, { flex: 1 }]}
+                                    onPress={() => setShowBaptismDatePicker(true)}
+                                >
+                                    <Text style={formData.petsaNgBinyag ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                        {formData.petsaNgBinyag || "Baptism Date (Tap to select)"}
+                                    </Text>
+                                    <Ionicons name="calendar" size={20} color="#666" />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.naButton}
+                                    onPress={() => handleNAOption("petsaNgBinyag")}
+                                >
+                                    <Text style={styles.naButtonText}>N/A</Text>
+                                </TouchableOpacity>
+                            </View>
 
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder="BAPTISM LOCATION" 
-                                placeholderTextColor="#999"
-                                value={formData.saanBinyag}
-                                onChangeText={(text) => handleChange("saanBinyag", text)} 
-                            />
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder="CONFIRMED BY" 
-                                placeholderTextColor="#999"
-                                value={formData.pangalanNgNagkumpil}
-                                onChangeText={(text) => handleChange("pangalanNgNagkumpil", text)} 
-                            />
+                            {/* Baptism Location with N/A Option */}
+                            <View style={styles.inputWithNA}>
+                                <TextInput 
+                                    style={[styles.input, { flex: 1 }]} 
+                                    placeholder="BAPTISM LOCATION" 
+                                    placeholderTextColor="#999"
+                                    value={formData.saanBinyag}
+                                    onChangeText={(text) => handleChange("saanBinyag", text)} 
+                                />
+                                <TouchableOpacity
+                                    style={styles.naButton}
+                                    onPress={() => handleNAOption("saanBinyag")}
+                                >
+                                    <Text style={styles.naButtonText}>N/A</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Confirmed By with N/A Option */}
+                            <View style={styles.inputWithNA}>
+                                <TextInput 
+                                    style={[styles.input, { flex: 1 }]} 
+                                    placeholder="CONFIRMED BY" 
+                                    placeholderTextColor="#999"
+                                    value={formData.pangalanNgNagkumpil}
+                                    onChangeText={(text) => handleChange("pangalanNgNagkumpil", text)} 
+                                />
+                                <TouchableOpacity
+                                    style={styles.naButton}
+                                    onPress={() => handleNAOption("pangalanNgNagkumpil")}
+                                >
+                                    <Text style={styles.naButtonText}>N/A</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
 
                         <View style={styles.formSection}>
@@ -508,7 +636,7 @@ const ConfirmationForm = () => {
                         <View style={styles.buttonContainer}>
                             <TouchableOpacity
                                 style={[styles.button, styles.submitButton]}
-                                onPress={openPreviewModal}
+                                onPress={handleSubmit}
                             >
                                 <Ionicons name="eye-outline" size={18} color="white" style={{ marginRight: 8 }} />
                                 <Text style={styles.buttonText}>Preview</Text>
@@ -560,10 +688,6 @@ const ConfirmationForm = () => {
                                                 </View>
                                                 <View style={demandStyles.listItem}>
                                                     <View style={demandStyles.bullet} />
-                                                    <Text style={demandStyles.listText}>Parent's Consent Form</Text>
-                                                </View>
-                                                <View style={demandStyles.listItem}>
-                                                    <View style={demandStyles.bullet} />
                                                     <Text style={demandStyles.listText}>Confirmation Seminar Attendance</Text>
                                                 </View>
                                             </View>
@@ -580,15 +704,11 @@ const ConfirmationForm = () => {
                                                 <View style={demandStyles.reminderCard}>
                                                     <View style={demandStyles.reminderHeader}>
                                                         <Ionicons name="information-circle" size={18} color="#3498db" />
-                                                        <Text style={demandStyles.reminderTitle}>Fee Information</Text>
+                                                        <Text style={demandStyles.reminderTitle}>Ang School po ang mag iiskedyul ng Kumpil ng mga bata, kung mag fill-up po kayo sa form na ito, ito po ay aming itatabi bilang reference.</Text>
                                                     </View>
                                                     <View style={demandStyles.feeOption}>
                                                         <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
-                                                        <Text style={demandStyles.feeText}><Text style={demandStyles.bold}>Regular Fee - ₱1,000</Text></Text>
-                                                    </View>
-                                                    <View style={demandStyles.feeOption}>
-                                                        <Ionicons name="checkmark-circle" size={16} color="#27ae60" />
-                                                        <Text style={demandStyles.feeText}><Text style={demandStyles.bold}>Includes certificate and stole</Text></Text>
+                                                        <Text style={demandStyles.feeText}><Text style={demandStyles.bold}> Bayad - at Parish Office</Text></Text>
                                                     </View>
                                                 </View>
                                                 
@@ -639,7 +759,7 @@ const ConfirmationForm = () => {
                                             <PreviewField label="Father's Name" value={formData.pangalanNgAma} />
                                             <PreviewField label="Father's Birthplace" value={formData.lugarNgKapanganakanAma} />
                                             <PreviewField label="Father's Parish" value={formData.tagaSaangParokyaAma} />
-                                            <PreviewField label="Father's Province" value={formData.saangLalawiganAma} />
+                                            <PreviewField label="Father's Province" value={formData.saanglalawiganAma} />
                                         </PreviewSection>
 
                                         <PreviewSection title="Mother's Information" icon="woman">
@@ -754,10 +874,15 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#2C3E50',
     },
+    dateInputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+        gap: 10,
+    },
     dateInput: {
         backgroundColor: '#F8F9FA',
         padding: 14,
-        marginBottom: 12,
         borderRadius: 8,
         borderWidth: 1,
         borderColor: '#E9ECEF',
@@ -772,6 +897,26 @@ const styles = StyleSheet.create({
     dateInputPlaceholder: {
         fontSize: 16,
         color: '#999',
+    },
+    inputWithNA: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+        gap: 10,
+    },
+    naButton: {
+        backgroundColor: '#6c757d',
+        paddingHorizontal: 15,
+        paddingVertical: 12,
+        borderRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+        minWidth: 60,
+    },
+    naButtonText: {
+        color: 'white',
+        fontWeight: '600',
+        fontSize: 14,
     },
     buttonContainer: {
         flexDirection: "row",

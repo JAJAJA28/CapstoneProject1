@@ -95,14 +95,7 @@ const WeddingFormScreen = ({ navigation }) => {
         }
     }, [loggedInUser]);
 
-    const handleInputChange = (field, value) => {
-        setFormData((prevData) => ({
-            ...prevData,
-            [field]: value,
-        }));
-    };
-
-    // Date handling functions
+    // Improved Date handling functions for both Android and iOS
     const formatDate = (date) => {
         const day = date.getDate().toString().padStart(2, '0');
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -116,22 +109,38 @@ const WeddingFormScreen = ({ navigation }) => {
         const ampm = hours >= 12 ? 'PM' : 'AM';
         
         hours = hours % 12;
-        hours = hours ? hours : 12; // the hour '0' should be '12'
+        hours = hours ? hours : 12;
         minutes = minutes.toString().padStart(2, '0');
         
         return `${hours}:${minutes} ${ampm}`;
     };
 
+    // Function to handle N/A option
+    const handleNAOption = (field) => {
+        handleInputChange(field, "N/A");
+    };
+
+    const handleInputChange = (field, value) => {
+        setFormData((prevData) => ({
+            ...prevData,
+            [field]: value,
+        }));
+    };
+
     // Wedding Date & Time Handlers
     const onWeddingDateChange = (event, selectedDate) => {
-        setShowWeddingDatePicker(false);
+        if (Platform.OS === 'android') {
+            setShowWeddingDatePicker(false);
+        }
         if (selectedDate) {
             handleInputChange("weddingDate", formatDate(selectedDate));
         }
     };
 
     const onWeddingTimeChange = (event, selectedDate) => {
-        setShowWeddingTimePicker(false);
+        if (Platform.OS === 'android') {
+            setShowWeddingTimePicker(false);
+        }
         if (selectedDate) {
             handleInputChange("weddingTime", formatTime(selectedDate));
         }
@@ -139,7 +148,9 @@ const WeddingFormScreen = ({ navigation }) => {
 
     // Payment Date Handler
     const onPaymentDateChange = (event, selectedDate) => {
-        setShowPaymentDatePicker(false);
+        if (Platform.OS === 'android') {
+            setShowPaymentDatePicker(false);
+        }
         if (selectedDate) {
             handleInputChange("paymentDate", formatDate(selectedDate));
         }
@@ -147,70 +158,90 @@ const WeddingFormScreen = ({ navigation }) => {
 
     // Schedule Details Handlers
     const onParishDateChange = (event, selectedDate) => {
-        setShowParishDatePicker(false);
+        if (Platform.OS === 'android') {
+            setShowParishDatePicker(false);
+        }
         if (selectedDate) {
             handleInputChange("parishScheduleDate", formatDate(selectedDate));
         }
     };
 
     const onParishTimeChange = (event, selectedDate) => {
-        setShowParishTimePicker(false);
+        if (Platform.OS === 'android') {
+            setShowParishTimePicker(false);
+        }
         if (selectedDate) {
             handleInputChange("parishScheduleTime", formatTime(selectedDate));
         }
     };
 
     const onPriestDateChange = (event, selectedDate) => {
-        setShowPriestDatePicker(false);
+        if (Platform.OS === 'android') {
+            setShowPriestDatePicker(false);
+        }
         if (selectedDate) {
             handleInputChange("priestInterviewDate", formatDate(selectedDate));
         }
     };
 
     const onPriestTimeChange = (event, selectedDate) => {
-        setShowPriestTimePicker(false);
+        if (Platform.OS === 'android') {
+            setShowPriestTimePicker(false);
+        }
         if (selectedDate) {
             handleInputChange("priestInterviewTime", formatTime(selectedDate));
         }
     };
 
     const onSeminarDateChange = (event, selectedDate) => {
-        setShowSeminarDatePicker(false);
+        if (Platform.OS === 'android') {
+            setShowSeminarDatePicker(false);
+        }
         if (selectedDate) {
             handleInputChange("seminarDate", formatDate(selectedDate));
         }
     };
 
     const onSeminarTimeChange = (event, selectedDate) => {
-        setShowSeminarTimePicker(false);
+        if (Platform.OS === 'android') {
+            setShowSeminarTimePicker(false);
+        }
         if (selectedDate) {
             handleInputChange("seminarTime", formatTime(selectedDate));
         }
     };
 
     const onCounsellingDateChange = (event, selectedDate) => {
-        setShowCounsellingDatePicker(false);
+        if (Platform.OS === 'android') {
+            setShowCounsellingDatePicker(false);
+        }
         if (selectedDate) {
             handleInputChange("counsellingDate", formatDate(selectedDate));
         }
     };
 
     const onCounsellingTimeChange = (event, selectedDate) => {
-        setShowCounsellingTimePicker(false);
+        if (Platform.OS === 'android') {
+            setShowCounsellingTimePicker(false);
+        }
         if (selectedDate) {
             handleInputChange("counsellingTime", formatTime(selectedDate));
         }
     };
 
     const onConfessionDateChange = (event, selectedDate) => {
-        setShowConfessionDatePicker(false);
+        if (Platform.OS === 'android') {
+            setShowConfessionDatePicker(false);
+        }
         if (selectedDate) {
             handleInputChange("confessionDate", formatDate(selectedDate));
         }
     };
 
     const onConfessionTimeChange = (event, selectedDate) => {
-        setShowConfessionTimePicker(false);
+        if (Platform.OS === 'android') {
+            setShowConfessionTimePicker(false);
+        }
         if (selectedDate) {
             handleInputChange("confessionTime", formatTime(selectedDate));
         }
@@ -504,114 +535,194 @@ const WeddingFormScreen = ({ navigation }) => {
                         />
                     </View>
 
-                    {/* UPDATED: Schedule Details with Date Pickers */}
+                    {/* UPDATED: Schedule Details with Date Pickers and N/A Options */}
                     <View style={styles.card}>
                         <Text style={styles.sectionTitle}>Schedule Details</Text>
                         
-                        {/* Parish Schedule */}
+                        {/* Parish Schedule with N/A Options */}
                         <Text style={styles.subSectionTitle}>Petsa at Oras sa Tanggapan ng Parokya</Text>
-                        <TouchableOpacity 
-                            style={styles.dateInput}
-                            onPress={() => setShowParishDatePicker(true)}
-                        >
-                            <Text style={formData.parishScheduleDate ? styles.dateInputText : styles.dateInputPlaceholder}>
-                                {formData.parishScheduleDate || "Petsa sa Parokya (Pindutin para pumili)"}
-                            </Text>
-                            <Ionicons name="calendar" size={20} color="#666" />
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                            style={styles.dateInput}
-                            onPress={() => setShowParishTimePicker(true)}
-                        >
-                            <Text style={formData.parishScheduleTime ? styles.dateInputText : styles.dateInputPlaceholder}>
-                                {formData.parishScheduleTime || "Oras sa Parokya (Pindutin para pumili)"}
-                            </Text>
-                            <Ionicons name="time" size={20} color="#666" />
-                        </TouchableOpacity>
+                        <View style={styles.dateInputContainer}>
+                            <TouchableOpacity 
+                                style={[styles.dateInput, { flex: 1 }]}
+                                onPress={() => setShowParishDatePicker(true)}
+                            >
+                                <Text style={formData.parishScheduleDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                    {formData.parishScheduleDate || "Petsa sa Parokya (Pindutin para pumili)"}
+                                </Text>
+                                <Ionicons name="calendar" size={20} color="#666" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption("parishScheduleDate")}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.dateInputContainer}>
+                            <TouchableOpacity 
+                                style={[styles.dateInput, { flex: 1 }]}
+                                onPress={() => setShowParishTimePicker(true)}
+                            >
+                                <Text style={formData.parishScheduleTime ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                    {formData.parishScheduleTime || "Oras sa Parokya (Pindutin para pumili)"}
+                                </Text>
+                                <Ionicons name="time" size={20} color="#666" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption("parishScheduleTime")}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
 
-                        {/* Priest Interview */}
+                        {/* Priest Interview with N/A Options */}
                         <Text style={styles.subSectionTitle}>Interview ng Pari</Text>
-                        <TouchableOpacity 
-                            style={styles.dateInput}
-                            onPress={() => setShowPriestDatePicker(true)}
-                        >
-                            <Text style={formData.priestInterviewDate ? styles.dateInputText : styles.dateInputPlaceholder}>
-                                {formData.priestInterviewDate || "Petsa ng Interview (Pindutin para pumili)"}
-                            </Text>
-                            <Ionicons name="calendar" size={20} color="#666" />
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                            style={styles.dateInput}
-                            onPress={() => setShowPriestTimePicker(true)}
-                        >
-                            <Text style={formData.priestInterviewTime ? styles.dateInputText : styles.dateInputPlaceholder}>
-                                {formData.priestInterviewTime || "Oras ng Interview (Pindutin para pumili)"}
-                            </Text>
-                            <Ionicons name="time" size={20} color="#666" />
-                        </TouchableOpacity>
+                        <View style={styles.dateInputContainer}>
+                            <TouchableOpacity 
+                                style={[styles.dateInput, { flex: 1 }]}
+                                onPress={() => setShowPriestDatePicker(true)}
+                            >
+                                <Text style={formData.priestInterviewDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                    {formData.priestInterviewDate || "Petsa ng Interview (Pindutin para pumili)"}
+                                </Text>
+                                <Ionicons name="calendar" size={20} color="#666" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption("priestInterviewDate")}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.dateInputContainer}>
+                            <TouchableOpacity 
+                                style={[styles.dateInput, { flex: 1 }]}
+                                onPress={() => setShowPriestTimePicker(true)}
+                            >
+                                <Text style={formData.priestInterviewTime ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                    {formData.priestInterviewTime || "Oras ng Interview (Pindutin para pumili)"}
+                                </Text>
+                                <Ionicons name="time" size={20} color="#666" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption("priestInterviewTime")}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
 
-                        {/* Catechetical Seminar */}
+                        {/* Catechetical Seminar with N/A Options */}
                         <Text style={styles.subSectionTitle}>Catechetical Seminar</Text>
-                        <TouchableOpacity 
-                            style={styles.dateInput}
-                            onPress={() => setShowSeminarDatePicker(true)}
-                        >
-                            <Text style={formData.seminarDate ? styles.dateInputText : styles.dateInputPlaceholder}>
-                                {formData.seminarDate || "Petsa ng Seminar (Pindutin para pumili)"}
-                            </Text>
-                            <Ionicons name="calendar" size={20} color="#666" />
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                            style={styles.dateInput}
-                            onPress={() => setShowSeminarTimePicker(true)}
-                        >
-                            <Text style={formData.seminarTime ? styles.dateInputText : styles.dateInputPlaceholder}>
-                                {formData.seminarTime || "Oras ng Seminar (Pindutin para pumili)"}
-                            </Text>
-                            <Ionicons name="time" size={20} color="#666" />
-                        </TouchableOpacity>
+                        <View style={styles.dateInputContainer}>
+                            <TouchableOpacity 
+                                style={[styles.dateInput, { flex: 1 }]}
+                                onPress={() => setShowSeminarDatePicker(true)}
+                            >
+                                <Text style={formData.seminarDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                    {formData.seminarDate || "Petsa ng Seminar (Pindutin para pumili)"}
+                                </Text>
+                                <Ionicons name="calendar" size={20} color="#666" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption("seminarDate")}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.dateInputContainer}>
+                            <TouchableOpacity 
+                                style={[styles.dateInput, { flex: 1 }]}
+                                onPress={() => setShowSeminarTimePicker(true)}
+                            >
+                                <Text style={formData.seminarTime ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                    {formData.seminarTime || "Oras ng Seminar (Pindutin para pumili)"}
+                                </Text>
+                                <Ionicons name="time" size={20} color="#666" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption("seminarTime")}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
 
-                        {/* Pre-cana Counselling */}
+                        {/* Pre-cana Counselling with N/A Options */}
                         <Text style={styles.subSectionTitle}>Pre-cana Counselling</Text>
-                        <TouchableOpacity 
-                            style={styles.dateInput}
-                            onPress={() => setShowCounsellingDatePicker(true)}
-                        >
-                            <Text style={formData.counsellingDate ? styles.dateInputText : styles.dateInputPlaceholder}>
-                                {formData.counsellingDate || "Petsa ng Counselling (Pindutin para pumili)"}
-                            </Text>
-                            <Ionicons name="calendar" size={20} color="#666" />
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                            style={styles.dateInput}
-                            onPress={() => setShowCounsellingTimePicker(true)}
-                        >
-                            <Text style={formData.counsellingTime ? styles.dateInputText : styles.dateInputPlaceholder}>
-                                {formData.counsellingTime || "Oras ng Counselling (Pindutin para pumili)"}
-                            </Text>
-                            <Ionicons name="time" size={20} color="#666" />
-                        </TouchableOpacity>
+                        <View style={styles.dateInputContainer}>
+                            <TouchableOpacity 
+                                style={[styles.dateInput, { flex: 1 }]}
+                                onPress={() => setShowCounsellingDatePicker(true)}
+                            >
+                                <Text style={formData.counsellingDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                    {formData.counsellingDate || "Petsa ng Counselling (Pindutin para pumili)"}
+                                </Text>
+                                <Ionicons name="calendar" size={20} color="#666" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption("counsellingDate")}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.dateInputContainer}>
+                            <TouchableOpacity 
+                                style={[styles.dateInput, { flex: 1 }]}
+                                onPress={() => setShowCounsellingTimePicker(true)}
+                            >
+                                <Text style={formData.counsellingTime ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                    {formData.counsellingTime || "Oras ng Counselling (Pindutin para pumili)"}
+                                </Text>
+                                <Ionicons name="time" size={20} color="#666" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption("counsellingTime")}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
 
-                        {/* Confession */}
+                        {/* Confession with N/A Options */}
                         <Text style={styles.subSectionTitle}>Kumpisal sa Pari</Text>
-                        <TouchableOpacity 
-                            style={styles.dateInput}
-                            onPress={() => setShowConfessionDatePicker(true)}
-                        >
-                            <Text style={formData.confessionDate ? styles.dateInputText : styles.dateInputPlaceholder}>
-                                {formData.confessionDate || "Petsa ng Kumpisal (Pindutin para pumili)"}
-                            </Text>
-                            <Ionicons name="calendar" size={20} color="#666" />
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                            style={styles.dateInput}
-                            onPress={() => setShowConfessionTimePicker(true)}
-                        >
-                            <Text style={formData.confessionTime ? styles.dateInputText : styles.dateInputPlaceholder}>
-                                {formData.confessionTime || "Oras ng Kumpisal (Pindutin para pumili)"}
-                            </Text>
-                            <Ionicons name="time" size={20} color="#666" />
-                        </TouchableOpacity>
+                        <View style={styles.dateInputContainer}>
+                            <TouchableOpacity 
+                                style={[styles.dateInput, { flex: 1 }]}
+                                onPress={() => setShowConfessionDatePicker(true)}
+                            >
+                                <Text style={formData.confessionDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                    {formData.confessionDate || "Petsa ng Kumpisal (Pindutin para pumili)"}
+                                </Text>
+                                <Ionicons name="calendar" size={20} color="#666" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption("confessionDate")}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.dateInputContainer}>
+                            <TouchableOpacity 
+                                style={[styles.dateInput, { flex: 1 }]}
+                                onPress={() => setShowConfessionTimePicker(true)}
+                            >
+                                <Text style={formData.confessionTime ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                    {formData.confessionTime || "Oras ng Kumpisal (Pindutin para pumili)"}
+                                </Text>
+                                <Ionicons name="time" size={20} color="#666" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption("confessionTime")}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
 
                         {/* Baptism/Confirmation (remains text input) */}
                         <TextInput 
@@ -637,30 +748,57 @@ const WeddingFormScreen = ({ navigation }) => {
                         <Text style={styles.paymentItem}>Additional Flowers - Php 2,000</Text>
                         <Text style={styles.paymentItem}>Wedding Rite Only - Php 4,000</Text>
                         
-                        {/* Payment Date */}
-                        <TouchableOpacity 
-                            style={styles.dateInput}
-                            onPress={() => setShowPaymentDatePicker(true)}
-                        >
-                            <Text style={formData.paymentDate ? styles.dateInputText : styles.dateInputPlaceholder}>
-                                {formData.paymentDate || "Petsa ng Bayad (Pindutin para pumili)"}
-                            </Text>
-                            <Ionicons name="calendar" size={20} color="#666" />
-                        </TouchableOpacity>
+                        {/* Payment Date with N/A Option */}
+                        <View style={styles.dateInputContainer}>
+                            <TouchableOpacity 
+                                style={[styles.dateInput, { flex: 1 }]}
+                                onPress={() => setShowPaymentDatePicker(true)}
+                            >
+                                <Text style={formData.paymentDate ? styles.dateInputText : styles.dateInputPlaceholder}>
+                                    {formData.paymentDate || "Petsa ng Bayad (Pindutin para pumili)"}
+                                </Text>
+                                <Ionicons name="calendar" size={20} color="#666" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption("paymentDate")}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
 
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="A.R No." 
-                            value={formData.arNo}
-                            onChangeText={(text) => handleInputChange('arNo', text)} 
-                        />
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="Php" 
-                            keyboardType="numeric"
-                            value={formData.paymentAmount}
-                            onChangeText={(text) => handleInputChange('paymentAmount', text)} 
-                        />
+                        {/* A.R. No. with N/A Option */}
+                        <View style={styles.inputWithNA}>
+                            <TextInput 
+                                style={[styles.input, { flex: 1 }]} 
+                                placeholder="A.R No." 
+                                value={formData.arNo}
+                                onChangeText={(text) => handleInputChange('arNo', text)} 
+                            />
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption("arNo")}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* PhP with N/A Option */}
+                        <View style={styles.inputWithNA}>
+                            <TextInput 
+                                style={[styles.input, { flex: 1 }]} 
+                                placeholder="Php" 
+                                keyboardType="numeric"
+                                value={formData.paymentAmount}
+                                onChangeText={(text) => handleInputChange('paymentAmount', text)} 
+                            />
+                            <TouchableOpacity
+                                style={styles.naButton}
+                                onPress={() => handleNAOption("paymentAmount")}
+                            >
+                                <Text style={styles.naButtonText}>N/A</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
                     {/* All Date Pickers */}
@@ -668,7 +806,7 @@ const WeddingFormScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="date"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onWeddingDateChange}
                         />
                     )}
@@ -677,7 +815,7 @@ const WeddingFormScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="time"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onWeddingTimeChange}
                         />
                     )}
@@ -686,7 +824,7 @@ const WeddingFormScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="date"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onPaymentDateChange}
                         />
                     )}
@@ -695,7 +833,7 @@ const WeddingFormScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="date"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onParishDateChange}
                         />
                     )}
@@ -704,7 +842,7 @@ const WeddingFormScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="time"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onParishTimeChange}
                         />
                     )}
@@ -713,7 +851,7 @@ const WeddingFormScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="date"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onPriestDateChange}
                         />
                     )}
@@ -722,7 +860,7 @@ const WeddingFormScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="time"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onPriestTimeChange}
                         />
                     )}
@@ -731,7 +869,7 @@ const WeddingFormScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="date"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onSeminarDateChange}
                         />
                     )}
@@ -740,7 +878,7 @@ const WeddingFormScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="time"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onSeminarTimeChange}
                         />
                     )}
@@ -749,7 +887,7 @@ const WeddingFormScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="date"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onCounsellingDateChange}
                         />
                     )}
@@ -758,7 +896,7 @@ const WeddingFormScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="time"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onCounsellingTimeChange}
                         />
                     )}
@@ -767,7 +905,7 @@ const WeddingFormScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="date"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onConfessionDateChange}
                         />
                     )}
@@ -776,7 +914,7 @@ const WeddingFormScreen = ({ navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode="time"
-                            display="default"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onConfessionTimeChange}
                         />
                     )}
@@ -1021,12 +1159,17 @@ const styles = StyleSheet.create({
         borderColor: '#ddd',
         fontSize: 16,
     },
+    dateInputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+        gap: 10,
+    },
     dateInput: {
         borderWidth: 1,
         borderColor: "#ddd",
         borderRadius: 8,
         padding: 12,
-        marginBottom: 10,
         backgroundColor: "#f9f9f9",
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -1039,6 +1182,26 @@ const styles = StyleSheet.create({
     dateInputPlaceholder: {
         fontSize: 16,
         color: "#999",
+    },
+    inputWithNA: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+        gap: 10,
+    },
+    naButton: {
+        backgroundColor: '#6c757d',
+        paddingHorizontal: 15,
+        paddingVertical: 12,
+        borderRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+        minWidth: 60,
+    },
+    naButtonText: {
+        color: 'white',
+        fontWeight: '600',
+        fontSize: 14,
     },
     noticeContainer: {
         backgroundColor: '#fff3cd',

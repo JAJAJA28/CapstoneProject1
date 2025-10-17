@@ -221,7 +221,7 @@ const SignupScreen = ({ navigation }) => {
                 style={styles.passwordToggle}
               >
                 <Text style={styles.passwordToggleText}>
-                  {showPassword ? "🙈 Hide Password" : "Show Password"}
+                  {showPassword ? "Hide Password" : "Show Password"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -242,7 +242,7 @@ const SignupScreen = ({ navigation }) => {
                 style={styles.passwordToggle}
               >
                 <Text style={styles.passwordToggleText}>
-                  {showConfirmPassword ? "🙈 Hide Password" : "Show Password"}
+                  {showConfirmPassword ? "Hide Password" : "Show Password"}
                 </Text>
               </TouchableOpacity>
             </View>

@@ -128,7 +128,7 @@ const RequestCertificate = () => {
     }));
   };
 
-  // Date Picker Functions
+  // Date Picker Functions with N/A option
   const handleDatePress = () => {
     setShowDatePicker(true);
   };
@@ -145,6 +145,15 @@ const RequestCertificate = () => {
         date: formattedDate
       }));
     }
+  };
+
+  // Add N/A option for date
+  const handleNADatePress = () => {
+    setFormData(prev => ({
+      ...prev,
+      date: 'N/A'
+    }));
+    setShowDatePicker(false);
   };
 
   // Purpose Dropdown Functions
@@ -166,6 +175,7 @@ const RequestCertificate = () => {
       return;
     }
 
+    // Updated validation - date field can now be N/A
     if (!formData.name || !formData.date || !formData.father || !formData.mother || !formData.purpose) {
       Alert.alert('Missing Information', 'Please fill out all fields before submitting.');
       return;
@@ -315,31 +325,58 @@ const RequestCertificate = () => {
               />
             </View>
 
-            {/* Date Picker Field */}
+            {/* Date Picker Field with N/A option */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: textColor }]}>Date of Sacrament *</Text>
-              <TouchableOpacity 
-                style={[styles.input, { 
-                  backgroundColor: isDarkMode ? '#2A2A2A' : '#F8F9FA',
-                  borderColor: borderColor,
-                  justifyContent: 'center'
-                }]}
-                onPress={handleDatePress}
-                disabled={isSubmitting}
-              >
-                <Text style={[ 
-                  { color: formData.date ? textColor : secondaryTextColor },
-                  styles.dateText
-                ]}>
-                  {formData.date || 'Select date (MM/DD/YY)'}
-                </Text>
-                <Ionicons 
-                  name="calendar" 
-                  size={20} 
-                  color={secondaryTextColor} 
-                  style={styles.dateIcon}
-                />
-              </TouchableOpacity>
+              <View style={styles.dateContainer}>
+                <TouchableOpacity 
+                  style={[
+                    styles.dateInput, 
+                    { 
+                      backgroundColor: isDarkMode ? '#2A2A2A' : '#F8F9FA',
+                      borderColor: borderColor,
+                      flex: 1
+                    }
+                  ]}
+                  onPress={handleDatePress}
+                  disabled={isSubmitting}
+                >
+                  <Text style={[ 
+                    { color: formData.date ? textColor : secondaryTextColor },
+                    styles.dateText
+                  ]}>
+                    {formData.date || 'Select date (MM/DD/YY)'}
+                  </Text>
+                  <Ionicons 
+                    name="calendar" 
+                    size={20} 
+                    color={secondaryTextColor} 
+                    style={styles.dateIcon}
+                  />
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[
+                    styles.naButton,
+                    { 
+                      backgroundColor: formData.date === 'N/A' ? primaryColor : 'transparent',
+                      borderColor: primaryColor
+                    }
+                  ]}
+                  onPress={handleNADatePress}
+                  disabled={isSubmitting}
+                >
+                  <Text style={[
+                    styles.naButtonText,
+                    { color: formData.date === 'N/A' ? '#FFF' : primaryColor }
+                  ]}>
+                    N/A
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={[styles.helperText, { color: secondaryTextColor }]}>
+                Select N/A if you don't know the exact date
+              </Text>
             </View>
 
             <View style={styles.inputGroup}>
@@ -750,6 +787,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  // New styles for date container with N/A button
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  dateInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  naButton: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 60,
+  },
+  naButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  helperText: {
+    fontSize: 12,
+    marginTop: 5,
+    fontStyle: 'italic',
   },
   dateText: {
     fontSize: 16,
