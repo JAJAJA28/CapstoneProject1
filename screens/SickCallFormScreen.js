@@ -144,7 +144,7 @@ const SickCallFormScreen = ({ navigation }) => {
       if (jsonResponse.status === "success") {
         Alert.alert(
           "Confirmed",
-          jsonResponse.message || "Your Sick Call Request has been sent. Please wait for a text message from our Secretary for confirmation."
+          jsonResponse.message || "Your Sick Call Request has been sent. Kindly wait for the administrator to review and respond.."
         );
         // Reset form data on successful submission
         setFormData({

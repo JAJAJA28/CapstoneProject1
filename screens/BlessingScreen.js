@@ -193,7 +193,7 @@ const BlessingScreen = ({ navigation }) => {
             if (jsonResponse.status === "success") {
                 Alert.alert(
                     "Submitted",
-                    jsonResponse.message || "Your Blessing request has been submitted successfully.",
+                    jsonResponse.message || "Your Blessing request has been submitted successfully, Kindly wait for the administrator to review and respond.",
                     [{ text: 'OK', onPress: () => navigation.goBack() }]
                 );
                 // Clear form

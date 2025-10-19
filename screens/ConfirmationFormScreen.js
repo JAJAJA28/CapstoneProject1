@@ -178,7 +178,7 @@ const ConfirmationForm = () => {
             if (jsonResponse.status === "success") {
                 Alert.alert(
                     "Success",
-                    jsonResponse.message || "CONFIRMATION DATA SUBMITTED. Mag intay lamang po ng text message mula sa ating Secretary para sa pag kumpirma.",
+                    jsonResponse.message || "CONFIRMATION DATA SUBMITTED. Kindly wait for the administrator to review and respond.",
                     [{ text: "OK", onPress: () => navigation.goBack() }]
                 );
             } else {

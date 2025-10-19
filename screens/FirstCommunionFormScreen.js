@@ -151,7 +151,7 @@ const FirstCommunionFormScreen = ({ navigation }) => {
       if (jsonResponse.status === "success") {
         Alert.alert(
           "FIRST COMMUNION DATA SUBMITTED",
-          jsonResponse.message || "Mag intay lamang po ng text message mula sa ating Secretary para sa kumpirmasyon."
+          jsonResponse.message || "Kindly wait for the administrator to review and respond."
         );
         navigation.goBack();
       } else {

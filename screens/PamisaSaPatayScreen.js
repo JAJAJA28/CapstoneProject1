@@ -204,7 +204,7 @@ const PamisaSaPatayScreen = () => {
         if (jsonResponse.status === "success") {
           Alert.alert(
             "Notification",
-            jsonResponse.message || "FUNERAL APPLICATION DATA SUBMITTED. Mag intay lamang po ng text message mula sa ating Secretary para sa pag kumpirma ng aplikasyon.",
+            jsonResponse.message || "FUNERAL APPLICATION DATA SUBMITTED. Kindly wait for the administrator to review and respond.",
             [{ text: "OK", onPress: () => navigation.navigate("MainTabs", { screen: "Dashboard" }) }]
           );
           setFormData(initialFormState);

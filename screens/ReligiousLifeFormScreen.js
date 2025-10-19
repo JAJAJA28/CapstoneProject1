@@ -175,7 +175,7 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
             if (jsonResponse.status === "success") {
                 Alert.alert(
                     "Submitted",
-                    jsonResponse.message || "Your Religious Life Inquiry has been sent."
+                    jsonResponse.message || "Kindly wait for the administrator to review and respond."
                 );
                 // Reset form data on successful submission
                 setFormData({

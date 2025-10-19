@@ -215,7 +215,7 @@ const RequestCertificate = () => {
 
       if (response.ok && result.status === 'success') {
         Alert.alert(
-          'Request Submitted Successfully',
+          'Request Submitted Successfully, Kindly wait for the administrator to review and respond.',
           result.message,
           [
             {

@@ -311,7 +311,7 @@ const WeddingFormScreen = ({ navigation }) => {
             if (jsonResponse.status === "success") {
                 Alert.alert(
                     "WEDDING DATA SUBMITTED",
-                    jsonResponse.message || "Mag intay lamang po ng text message mula sa ating Secretary para sa pag kumpirma ng Wedding Application.",
+                    jsonResponse.message || "Kindly wait for the administrator to review and respond.",
                     [{ text: "OK", onPress: () => resetFormAndGoToDashboard() }]
                 );
             } else {
