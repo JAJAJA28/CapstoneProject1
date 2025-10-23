@@ -68,6 +68,11 @@ const PamisaSaPatayScreen = () => {
     }
   }, [loggedInUser]);
 
+  // Get current date for date validation
+  const getCurrentDate = () => {
+    return new Date();
+  };
+
   // Improved Date handling functions for both Android and iOS
   const formatDate = (date) => {
     const day = date.getDate().toString().padStart(2, '0');
@@ -94,12 +99,22 @@ const PamisaSaPatayScreen = () => {
     return `${month}-${day}`;
   };
 
-  // Date picker handlers
+  // Updated Date picker handlers with validation
   const onBurialDateChange = (event, selectedDate) => {
     if (Platform.OS === 'android') {
       setShowBurialDatePicker(false);
     }
     if (selectedDate) {
+      const currentDate = getCurrentDate();
+      // Check if selected burial date is in the past
+      if (selectedDate < currentDate) {
+        Alert.alert(
+          "Invalid Date", 
+          "Burial date cannot be in the past. Please select a future date.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
       handleChange("burialDate", formatDate(selectedDate));
     }
   };
@@ -118,6 +133,16 @@ const PamisaSaPatayScreen = () => {
       setShowDeathDatePicker(false);
     }
     if (selectedDate) {
+      const currentDate = getCurrentDate();
+      // Check if selected death date is in the future
+      if (selectedDate > currentDate) {
+        Alert.alert(
+          "Invalid Date", 
+          "Death date cannot be in the future.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
       handleChange("deathDate", formatMonthDay(selectedDate));
       // Auto-fill the year if not set
       if (!formData.deathYear) {
@@ -157,10 +182,52 @@ const PamisaSaPatayScreen = () => {
       return false;
     }
 
+    // Validate dates
+    const currentDate = getCurrentDate();
+    
+    // Validate burial date (should be future)
+    if (formData.burialDate && formData.burialDate !== "N/A") {
+      const burialDate = new Date(formData.burialDate);
+      if (burialDate < currentDate) {
+        Alert.alert("Invalid Date", "Burial date must be in the future.");
+        return false;
+      }
+    }
+
+    // Validate death date (should be past)
+    if (formData.deathDate && formData.deathDate !== "N/A") {
+      const deathDate = new Date(`${formData.deathYear || currentDate.getFullYear()}-${formData.deathDate}`);
+      if (deathDate > currentDate) {
+        Alert.alert("Invalid Date", "Death date must be in the past.");
+        return false;
+      }
+    }
+
     return true;
   };
 
   const handleSubmit = async () => {
+    // Final date validation before submission
+    const currentDate = getCurrentDate();
+    
+    // Validate burial date (should be future)
+    if (formData.burialDate && formData.burialDate !== "N/A") {
+      const burialDate = new Date(formData.burialDate);
+      if (burialDate < currentDate) {
+        Alert.alert("Invalid Date", "Burial date must be in the future.");
+        return;
+      }
+    }
+
+    // Validate death date (should be past)
+    if (formData.deathDate && formData.deathDate !== "N/A") {
+      const deathDate = new Date(`${formData.deathYear || currentDate.getFullYear()}-${formData.deathDate}`);
+      if (deathDate > currentDate) {
+        Alert.alert("Invalid Date", "Death date must be in the past.");
+        return;
+      }
+    }
+
     // Validate form inputs
     if (!validateForm()) {
       return;
@@ -482,13 +549,14 @@ const PamisaSaPatayScreen = () => {
             </View>
           ))}
 
-          {/* Date Pickers */}
+          {/* Updated Date Pickers with proper date blocking */}
           {showBurialDatePicker && (
             <DateTimePicker
               value={new Date()}
               mode="date"
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={onBurialDateChange}
+              minimumDate={new Date()} // Block past dates for burial
             />
           )}
 
@@ -507,6 +575,7 @@ const PamisaSaPatayScreen = () => {
               mode="date"
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={onDeathDateChange}
+              maximumDate={new Date()} // Block future dates for death
             />
           )}
 
@@ -667,7 +736,6 @@ const PamisaSaPatayScreen = () => {
     </KeyboardAvoidingView>
   );
 };
-
 // Updated styles to include dateInput and N/A button styles
 const styles = StyleSheet.create({
   container: {

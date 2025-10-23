@@ -58,6 +58,11 @@ const BlessingScreen = ({ navigation }) => {
         { label: '📌 Others', value: 'Others' },
     ];
 
+    // Get current date for minimum date validation
+    const getCurrentDate = () => {
+        return new Date();
+    };
+
     // Improved Date and Time handling functions for both Android and iOS
     const formatDate = (selectedDate) => {
         const day = selectedDate.getDate().toString().padStart(2, '0');
@@ -78,11 +83,22 @@ const BlessingScreen = ({ navigation }) => {
         return `${hours}:${minutes} ${ampm}`;
     };
 
+    // Updated Date handling function with past date blocking
     const onDateChange = (event, selectedDate) => {
         if (Platform.OS === 'android') {
             setShowDatePicker(false);
         }
         if (selectedDate) {
+            const currentDate = getCurrentDate();
+            // Check if selected date is in the past
+            if (selectedDate < currentDate) {
+                Alert.alert(
+                    "Invalid Date", 
+                    "Please select a future date for the blessing.",
+                    [{ text: "OK" }]
+                );
+                return;
+            }
             setDate(formatDate(selectedDate));
         }
     };
@@ -128,6 +144,16 @@ const BlessingScreen = ({ navigation }) => {
             }
         }
 
+        // Date validation
+        if (date && date !== 'N/A') {
+            const currentDate = getCurrentDate();
+            const selectedDate = new Date(date);
+            if (selectedDate < currentDate) {
+                Alert.alert('Invalid Date', 'Blessing date must be in the future.');
+                return false;
+            }
+        }
+
         return true;
     };
 
@@ -154,6 +180,20 @@ const BlessingScreen = ({ navigation }) => {
     };
 
     const handleSubmit = async () => {
+        // Final date validation before submission
+        if (date && date !== 'N/A') {
+            const currentDate = getCurrentDate();
+            const selectedDate = new Date(date);
+            if (selectedDate < currentDate) {
+                Alert.alert('Invalid Date', 'Blessing date must be in the future.');
+                return;
+            }
+        }
+
+        if (!validateForm()) {
+            return;
+        }
+
         setIsSubmitting(true);
         
         const formData = {
@@ -264,13 +304,14 @@ const BlessingScreen = ({ navigation }) => {
                     contentContainerStyle={styles.scrollContainer}
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Date and Time Pickers */}
+                    {/* Updated Date and Time Pickers with minimumDate */}
                     {showDatePicker && (
                         <DateTimePicker
                             value={new Date()}
                             mode="date"
                             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onDateChange}
+                            minimumDate={new Date()} // Block past dates for blessing
                         />
                     )}
 
@@ -495,8 +536,6 @@ const BlessingScreen = ({ navigation }) => {
                                                 <View style={demandStyles.bullet} />
                                                 <Text style={demandStyles.listText}>Accomplished Blessing Form</Text>
                                             </View>
-                                           
-                                          
                                         </View>
                                     </View>
                                     

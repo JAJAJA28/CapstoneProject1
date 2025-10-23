@@ -95,6 +95,11 @@ const WeddingFormScreen = ({ navigation }) => {
         }
     }, [loggedInUser]);
 
+    // Get current date for minimum date validation
+    const getCurrentDate = () => {
+        return new Date();
+    };
+
     // Improved Date handling functions for both Android and iOS
     const formatDate = (date) => {
         const day = date.getDate().toString().padStart(2, '0');
@@ -127,12 +132,22 @@ const WeddingFormScreen = ({ navigation }) => {
         }));
     };
 
-    // Wedding Date & Time Handlers
+    // Updated Date handling functions with past date blocking
     const onWeddingDateChange = (event, selectedDate) => {
         if (Platform.OS === 'android') {
             setShowWeddingDatePicker(false);
         }
         if (selectedDate) {
+            const currentDate = getCurrentDate();
+            // Check if selected date is in the past
+            if (selectedDate < currentDate) {
+                Alert.alert(
+                    "Invalid Date", 
+                    "Please select a future date for the wedding.",
+                    [{ text: "OK" }]
+                );
+                return;
+            }
             handleInputChange("weddingDate", formatDate(selectedDate));
         }
     };
@@ -146,22 +161,42 @@ const WeddingFormScreen = ({ navigation }) => {
         }
     };
 
-    // Payment Date Handler
+    // Payment Date Handler with validation
     const onPaymentDateChange = (event, selectedDate) => {
         if (Platform.OS === 'android') {
             setShowPaymentDatePicker(false);
         }
         if (selectedDate) {
+            const currentDate = getCurrentDate();
+            // Check if selected date is in the past
+            if (selectedDate < currentDate) {
+                Alert.alert(
+                    "Invalid Date", 
+                    "Please select a future date for payment.",
+                    [{ text: "OK" }]
+                );
+                return;
+            }
             handleInputChange("paymentDate", formatDate(selectedDate));
         }
     };
 
-    // Schedule Details Handlers
+    // Schedule Details Handlers with validation
     const onParishDateChange = (event, selectedDate) => {
         if (Platform.OS === 'android') {
             setShowParishDatePicker(false);
         }
         if (selectedDate) {
+            const currentDate = getCurrentDate();
+            // Check if selected date is in the past
+            if (selectedDate < currentDate) {
+                Alert.alert(
+                    "Invalid Date", 
+                    "Please select a future date for parish schedule.",
+                    [{ text: "OK" }]
+                );
+                return;
+            }
             handleInputChange("parishScheduleDate", formatDate(selectedDate));
         }
     };
@@ -180,6 +215,16 @@ const WeddingFormScreen = ({ navigation }) => {
             setShowPriestDatePicker(false);
         }
         if (selectedDate) {
+            const currentDate = getCurrentDate();
+            // Check if selected date is in the past
+            if (selectedDate < currentDate) {
+                Alert.alert(
+                    "Invalid Date", 
+                    "Please select a future date for priest interview.",
+                    [{ text: "OK" }]
+                );
+                return;
+            }
             handleInputChange("priestInterviewDate", formatDate(selectedDate));
         }
     };
@@ -198,6 +243,16 @@ const WeddingFormScreen = ({ navigation }) => {
             setShowSeminarDatePicker(false);
         }
         if (selectedDate) {
+            const currentDate = getCurrentDate();
+            // Check if selected date is in the past
+            if (selectedDate < currentDate) {
+                Alert.alert(
+                    "Invalid Date", 
+                    "Please select a future date for seminar.",
+                    [{ text: "OK" }]
+                );
+                return;
+            }
             handleInputChange("seminarDate", formatDate(selectedDate));
         }
     };
@@ -216,6 +271,16 @@ const WeddingFormScreen = ({ navigation }) => {
             setShowCounsellingDatePicker(false);
         }
         if (selectedDate) {
+            const currentDate = getCurrentDate();
+            // Check if selected date is in the past
+            if (selectedDate < currentDate) {
+                Alert.alert(
+                    "Invalid Date", 
+                    "Please select a future date for counselling.",
+                    [{ text: "OK" }]
+                );
+                return;
+            }
             handleInputChange("counsellingDate", formatDate(selectedDate));
         }
     };
@@ -234,6 +299,16 @@ const WeddingFormScreen = ({ navigation }) => {
             setShowConfessionDatePicker(false);
         }
         if (selectedDate) {
+            const currentDate = getCurrentDate();
+            // Check if selected date is in the past
+            if (selectedDate < currentDate) {
+                Alert.alert(
+                    "Invalid Date", 
+                    "Please select a future date for confession.",
+                    [{ text: "OK" }]
+                );
+                return;
+            }
             handleInputChange("confessionDate", formatDate(selectedDate));
         }
     };
@@ -256,6 +331,46 @@ const WeddingFormScreen = ({ navigation }) => {
     };
 
     const handleConfirmSubmit = async () => {
+        // Final date validation before submission
+        const currentDate = getCurrentDate();
+        
+        // Validate wedding date
+        if (formData.weddingDate && formData.weddingDate !== "N/A") {
+            const weddingDate = new Date(formData.weddingDate);
+            if (weddingDate < currentDate) {
+                Alert.alert("Invalid Date", "Wedding date must be in the future.");
+                return;
+            }
+        }
+
+        // Validate payment date
+        if (formData.paymentDate && formData.paymentDate !== "N/A") {
+            const paymentDate = new Date(formData.paymentDate);
+            if (paymentDate < currentDate) {
+                Alert.alert("Invalid Date", "Payment date must be in the future.");
+                return;
+            }
+        }
+
+        // Validate all schedule dates
+        const scheduleDates = [
+            { field: "parishScheduleDate", label: "Parish Schedule" },
+            { field: "priestInterviewDate", label: "Priest Interview" },
+            { field: "seminarDate", label: "Seminar" },
+            { field: "counsellingDate", label: "Counselling" },
+            { field: "confessionDate", label: "Confession" }
+        ];
+
+        for (const { field, label } of scheduleDates) {
+            if (formData[field] && formData[field] !== "N/A") {
+                const scheduleDate = new Date(formData[field]);
+                if (scheduleDate < currentDate) {
+                    Alert.alert("Invalid Date", `${label} date must be in the future.`);
+                    return;
+                }
+            }
+        }
+
         closePreviewModal();
 
         try {
@@ -328,6 +443,46 @@ const WeddingFormScreen = ({ navigation }) => {
     };
 
     const handleSubmit = () => {
+        // Date validation before preview
+        const currentDate = getCurrentDate();
+        
+        // Validate wedding date
+        if (formData.weddingDate && formData.weddingDate !== "N/A") {
+            const weddingDate = new Date(formData.weddingDate);
+            if (weddingDate < currentDate) {
+                Alert.alert("Invalid Date", "Wedding date must be in the future.");
+                return;
+            }
+        }
+
+        // Validate payment date
+        if (formData.paymentDate && formData.paymentDate !== "N/A") {
+            const paymentDate = new Date(formData.paymentDate);
+            if (paymentDate < currentDate) {
+                Alert.alert("Invalid Date", "Payment date must be in the future.");
+                return;
+            }
+        }
+
+        // Validate all schedule dates
+        const scheduleDates = [
+            { field: "parishScheduleDate", label: "Parish Schedule" },
+            { field: "priestInterviewDate", label: "Priest Interview" },
+            { field: "seminarDate", label: "Seminar" },
+            { field: "counsellingDate", label: "Counselling" },
+            { field: "confessionDate", label: "Confession" }
+        ];
+
+        for (const { field, label } of scheduleDates) {
+            if (formData[field] && formData[field] !== "N/A") {
+                const scheduleDate = new Date(formData[field]);
+                if (scheduleDate < currentDate) {
+                    Alert.alert("Invalid Date", `${label} date must be in the future.`);
+                    return;
+                }
+            }
+        }
+
         console.log("Current formData:", formData);
 
         for (let key in formData) {
@@ -801,13 +956,14 @@ const WeddingFormScreen = ({ navigation }) => {
                         </View>
                     </View>
 
-                    {/* All Date Pickers */}
+                    {/* All Date Pickers with minimumDate */}
                     {showWeddingDatePicker && (
                         <DateTimePicker
                             value={new Date()}
                             mode="date"
                             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onWeddingDateChange}
+                            minimumDate={new Date()} // Block past dates
                         />
                     )}
 
@@ -826,6 +982,7 @@ const WeddingFormScreen = ({ navigation }) => {
                             mode="date"
                             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onPaymentDateChange}
+                            minimumDate={new Date()} // Block past dates
                         />
                     )}
 
@@ -835,6 +992,7 @@ const WeddingFormScreen = ({ navigation }) => {
                             mode="date"
                             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onParishDateChange}
+                            minimumDate={new Date()} // Block past dates
                         />
                     )}
 
@@ -853,6 +1011,7 @@ const WeddingFormScreen = ({ navigation }) => {
                             mode="date"
                             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onPriestDateChange}
+                            minimumDate={new Date()} // Block past dates
                         />
                     )}
 
@@ -871,6 +1030,7 @@ const WeddingFormScreen = ({ navigation }) => {
                             mode="date"
                             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onSeminarDateChange}
+                            minimumDate={new Date()} // Block past dates
                         />
                     )}
 
@@ -889,6 +1049,7 @@ const WeddingFormScreen = ({ navigation }) => {
                             mode="date"
                             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onCounsellingDateChange}
+                            minimumDate={new Date()} // Block past dates
                         />
                     )}
 
@@ -907,6 +1068,7 @@ const WeddingFormScreen = ({ navigation }) => {
                             mode="date"
                             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onConfessionDateChange}
+                            minimumDate={new Date()} // Block past dates
                         />
                     )}
 
@@ -923,7 +1085,7 @@ const WeddingFormScreen = ({ navigation }) => {
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity
                             style={[styles.button, styles.submitButton]}
-                            onPress={openPreviewModal}
+                            onPress={handleSubmit}
                         >
                             <Ionicons name="eye-outline" size={18} color="white" style={{ marginRight: 8 }} />
                             <Text style={styles.buttonText}>Preview</Text>

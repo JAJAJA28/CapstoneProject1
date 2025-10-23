@@ -30,6 +30,9 @@ const BaptismalFormScreen = () => {
   const navigation = useNavigation();
   const fadeAnim = useState(new Animated.Value(0))[0];
 
+  // Get current date for minimum date restriction
+  const currentDate = new Date();
+
   // Date picker states - FIXED: Use single state for all pickers
   const [showPicker, setShowPicker] = useState({
     baptismDate: false,
@@ -530,7 +533,7 @@ const BaptismalFormScreen = () => {
           {/* Required fields note */}
           <Text style={styles.requiredNote}>* Required fields</Text>
 
-          {/* Date Pickers - FIXED: Better implementation */}
+          {/* Date Pickers - UPDATED: Added minimumDate to block past dates */}
           {showPicker.baptismDate && (
             Platform.OS === 'ios' ? (
               <Modal
@@ -552,6 +555,7 @@ const BaptismalFormScreen = () => {
                     value={currentDates.baptismDate}
                     mode="date"
                     display="spinner"
+                    minimumDate={currentDate} // BLOCK PAST DATES
                     onChange={(event, date) => setCurrentDates({...currentDates, baptismDate: date})}
                     style={styles.iosPicker}
                   />
@@ -562,6 +566,7 @@ const BaptismalFormScreen = () => {
                 value={currentDates.baptismDate}
                 mode="date"
                 display="default"
+                minimumDate={currentDate} // BLOCK PAST DATES
                 onChange={(event, date) => onDateChange(event, date, 'baptismDate')}
               />
             )
@@ -624,6 +629,7 @@ const BaptismalFormScreen = () => {
                     value={currentDates.paymentDate}
                     mode="date"
                     display="spinner"
+                    minimumDate={currentDate} // BLOCK PAST DATES
                     onChange={(event, date) => setCurrentDates({...currentDates, paymentDate: date})}
                     style={styles.iosPicker}
                   />
@@ -634,6 +640,7 @@ const BaptismalFormScreen = () => {
                 value={currentDates.paymentDate}
                 mode="date"
                 display="default"
+                minimumDate={currentDate} // BLOCK PAST DATES
                 onChange={(event, date) => onDateChange(event, date, 'paymentDate')}
               />
             )
@@ -660,6 +667,7 @@ const BaptismalFormScreen = () => {
                     value={currentDates.birthDate}
                     mode="date"
                     display="spinner"
+                    maximumDate={currentDate} // For birth date, block future dates
                     onChange={(event, date) => setCurrentDates({...currentDates, birthDate: date})}
                     style={styles.iosPicker}
                   />
@@ -670,6 +678,7 @@ const BaptismalFormScreen = () => {
                 value={currentDates.birthDate}
                 mode="date"
                 display="default"
+                maximumDate={currentDate} // For birth date, block future dates
                 onChange={(event, date) => onDateChange(event, date, 'birthDate')}
               />
             )

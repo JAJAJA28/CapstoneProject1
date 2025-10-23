@@ -100,7 +100,7 @@ const DonationFormScreen = () => {
       setIsSubmitting(true);
       const payload = { ...formData, signature };
       try {
-        const response = await fetch("http://192.168.1.18/system/donation.php", {
+        const response = await fetch("http:/192.168.1.18/system/donation.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),

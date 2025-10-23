@@ -54,7 +54,12 @@ const SickCallFormScreen = ({ navigation }) => {
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Improved Date handling functions for both Android and iOS
+  // Get current date for minimum date validation
+  const getCurrentDate = () => {
+    return new Date();
+  };
+
+  // Format date to MM/DD/YYYY
   const formatDate = (date) => {
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -62,11 +67,23 @@ const SickCallFormScreen = ({ navigation }) => {
     return `${month}/${day}/${year}`;
   };
 
+  // Updated Date handling function with past date blocking
   const onDateChange = (event, selectedDate) => {
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
     }
+    
     if (selectedDate) {
+      const currentDate = getCurrentDate();
+      // Check if selected date is in the past
+      if (selectedDate < currentDate) {
+        Alert.alert(
+          "Invalid Date", 
+          "Please select a future date for the visit.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
       handleChange("dateOfVisit", formatDate(selectedDate));
     }
   };
@@ -81,6 +98,16 @@ const SickCallFormScreen = ({ navigation }) => {
   };
 
   const openPreviewModal = () => {
+    // Validate date before preview
+    if (formData.dateOfVisit && formData.dateOfVisit !== "N/A") {
+      const currentDate = getCurrentDate();
+      const visitDate = new Date(formData.dateOfVisit);
+      if (visitDate < currentDate) {
+        Alert.alert("Invalid Date", "Visit date must be in the future.");
+        return;
+      }
+    }
+
     // Client-side validation: Check if all fields are filled
     const isComplete = Object.values(formData).every(field => String(field).trim() !== '');
     if (!isComplete) {
@@ -107,6 +134,16 @@ const SickCallFormScreen = ({ navigation }) => {
   };
 
   const handleSubmit = async () => {
+    // Final date validation before submission
+    if (formData.dateOfVisit && formData.dateOfVisit !== "N/A") {
+      const currentDate = getCurrentDate();
+      const visitDate = new Date(formData.dateOfVisit);
+      if (visitDate < currentDate) {
+        Alert.alert("Invalid Date", "Visit date must be in the future.");
+        return;
+      }
+    }
+
     try {
       const serverUrl = "http://192.168.1.18/system/sickcall_submit.php";
 
@@ -207,7 +244,6 @@ const SickCallFormScreen = ({ navigation }) => {
   );
 
   const requirements = [
-    
     "Contact information of your designated person"
   ];
 
@@ -215,13 +251,14 @@ const SickCallFormScreen = ({ navigation }) => {
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView contentContainerStyle={styles.container}>
-          {/* Date Picker */}
+          {/* Updated Date Picker with minimumDate */}
           {showDatePicker && (
             <DateTimePicker
               value={new Date()}
               mode="date"
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={onDateChange}
+              minimumDate={new Date()} // Block past dates for visit date
             />
           )}
 
@@ -472,7 +509,6 @@ const SickCallFormScreen = ({ navigation }) => {
     </KeyboardAvoidingView>
   );
 };
-
 const styles = StyleSheet.create({
   container: { 
     padding: 20, 

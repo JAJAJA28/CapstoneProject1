@@ -26,9 +26,20 @@ const FirstCommunionFormScreen = ({ navigation }) => {
   const { width, height } = useWindowDimensions();
   const [isPortrait, setIsPortrait] = useState(height > width);
   
-  // Date picker states
-  const [showCommunionDatePicker, setShowCommunionDatePicker] = useState(false);
-  const [showBaptismDatePicker, setShowBaptismDatePicker] = useState(false);
+  // Get current date for minimum date restriction
+  const currentDate = new Date();
+
+  // Date picker states - UPDATED: Use unified state
+  const [showPicker, setShowPicker] = useState({
+    communionDate: false,
+    baptismDate: false
+  });
+
+  // Current selected dates - ADDED: Store actual Date objects
+  const [currentDates, setCurrentDates] = useState({
+    communionDate: new Date(),
+    baptismDate: new Date()
+  });
 
   const [formData, setFormData] = useState({
     contactNumber: "",
@@ -64,24 +75,46 @@ const FirstCommunionFormScreen = ({ navigation }) => {
     return `${month}/${day}/${year}`;
   };
 
-  const onCommunionDateChange = (event, selectedDate) => {
+  // UPDATED: Unified date change handler
+  const onDateChange = (event, selectedDate, type) => {
     if (Platform.OS === 'android') {
-      setShowCommunionDatePicker(false);
+      setShowPicker({
+        communionDate: false,
+        baptismDate: false
+      });
     }
     
     if (selectedDate) {
-      handleInputChange("communionDate", formatDate(selectedDate));
+      setCurrentDates({
+        ...currentDates,
+        [type]: selectedDate
+      });
+
+      // Format and set the form data based on type
+      if (type === 'communionDate') {
+        handleInputChange("communionDate", formatDate(selectedDate));
+      } else if (type === 'baptismDate') {
+        handleInputChange("baptismDate", formatDate(selectedDate));
+      }
+
+      // For iOS, we need to manually close the picker after selection
+      if (Platform.OS === 'ios') {
+        setTimeout(() => {
+          setShowPicker({
+            communionDate: false,
+            baptismDate: false
+          });
+        }, 500);
+      }
     }
   };
 
-  const onBaptismDateChange = (event, selectedDate) => {
-    if (Platform.OS === 'android') {
-      setShowBaptismDatePicker(false);
-    }
-    
-    if (selectedDate) {
-      handleInputChange("baptismDate", formatDate(selectedDate));
-    }
+  // ADDED: Handle iOS modal close
+  const handleIOSPickerClose = () => {
+    setShowPicker({
+      communionDate: false,
+      baptismDate: false
+    });
   };
 
   // Function to handle N/A option
@@ -222,25 +255,6 @@ const FirstCommunionFormScreen = ({ navigation }) => {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={{ flex: 1 }}>
-          {/* Date Pickers */}
-          {showCommunionDatePicker && (
-            <DateTimePicker
-              value={new Date()}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={onCommunionDateChange}
-            />
-          )}
-
-          {showBaptismDatePicker && (
-            <DateTimePicker
-              value={new Date()}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={onBaptismDatePicker}
-            />
-          )}
-
           {/* Preview Modal */}
           <Modal visible={previewModalVisible} animationType="fade" transparent>
             <View style={previewStyles.modalContainer}>
@@ -294,6 +308,83 @@ const FirstCommunionFormScreen = ({ navigation }) => {
               </Animated.View>
             </View>
           </Modal>
+
+          {/* UPDATED: Date Pickers with minimumDate */}
+          {showPicker.communionDate && (
+            Platform.OS === 'ios' ? (
+              <Modal
+                visible={showPicker.communionDate}
+                transparent={true}
+                animationType="slide"
+              >
+                <View style={styles.iosPickerContainer}>
+                  <View style={styles.iosPickerHeader}>
+                    <TouchableOpacity onPress={handleIOSPickerClose}>
+                      <Text style={styles.iosPickerCancel}>Cancel</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.iosPickerTitle}>Select Communion Date</Text>
+                    <TouchableOpacity onPress={() => onDateChange(null, currentDates.communionDate, 'communionDate')}>
+                      <Text style={styles.iosPickerDone}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker
+                    value={currentDates.communionDate}
+                    mode="date"
+                    display="spinner"
+                    minimumDate={currentDate} // BLOCK PAST DATES
+                    onChange={(event, date) => setCurrentDates({...currentDates, communionDate: date})}
+                    style={styles.iosPicker}
+                  />
+                </View>
+              </Modal>
+            ) : (
+              <DateTimePicker
+                value={currentDates.communionDate}
+                mode="date"
+                display="default"
+                minimumDate={currentDate} // BLOCK PAST DATES
+                onChange={(event, date) => onDateChange(event, date, 'communionDate')}
+              />
+            )
+          )}
+
+          {showPicker.baptismDate && (
+            Platform.OS === 'ios' ? (
+              <Modal
+                visible={showPicker.baptismDate}
+                transparent={true}
+                animationType="slide"
+              >
+                <View style={styles.iosPickerContainer}>
+                  <View style={styles.iosPickerHeader}>
+                    <TouchableOpacity onPress={handleIOSPickerClose}>
+                      <Text style={styles.iosPickerCancel}>Cancel</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.iosPickerTitle}>Select Baptism Date</Text>
+                    <TouchableOpacity onPress={() => onDateChange(null, currentDates.baptismDate, 'baptismDate')}>
+                      <Text style={styles.iosPickerDone}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker
+                    value={currentDates.baptismDate}
+                    mode="date"
+                    display="spinner"
+                    maximumDate={currentDate} // For baptism date, block future dates
+                    onChange={(event, date) => setCurrentDates({...currentDates, baptismDate: date})}
+                    style={styles.iosPicker}
+                  />
+                </View>
+              </Modal>
+            ) : (
+              <DateTimePicker
+                value={currentDates.baptismDate}
+                mode="date"
+                display="default"
+                maximumDate={currentDate} // For baptism date, block future dates
+                onChange={(event, date) => onDateChange(event, date, 'baptismDate')}
+              />
+            )
+          )}
 
           {/* Requirements Modal */}
           <Modal animationType="fade" transparent={true} visible={modalVisible}>
@@ -407,7 +498,7 @@ const FirstCommunionFormScreen = ({ navigation }) => {
                     height: responsiveStyles.inputHeight,
                     flex: 1
                   }]}
-                  onPress={() => setShowCommunionDatePicker(true)}
+                  onPress={() => setShowPicker({...showPicker, communionDate: true})}
                 >
                   <Text style={formData.communionDate ? styles.dateInputText : styles.dateInputPlaceholder}>
                     {formData.communionDate || "Petsa ng Komunyon (Pindutin para pumili)"}
@@ -493,7 +584,7 @@ const FirstCommunionFormScreen = ({ navigation }) => {
                     height: responsiveStyles.inputHeight,
                     flex: 1
                   }]}
-                  onPress={() => setShowBaptismDatePicker(true)}
+                  onPress={() => setShowPicker({...showPicker, baptismDate: true})}
                 >
                   <Text style={formData.baptismDate ? styles.dateInputText : styles.dateInputPlaceholder}>
                     {formData.baptismDate || "Petsa ng Binyag (Pindutin para pumili)"}

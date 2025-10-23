@@ -64,7 +64,12 @@ const ConfirmationForm = () => {
         email: loggedInUser?.email || "guest@example.com"
     });
 
-    // Improved Date handling functions for both Android and iOS
+    // Get current date for minimum date validation
+    const getCurrentDate = () => {
+        return new Date();
+    };
+
+    // Format date to MM/DD/YYYY
     const formatDate = (date) => {
         const day = date.getDate().toString().padStart(2, '0');
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -84,11 +89,23 @@ const ConfirmationForm = () => {
         return `${hours}:${minutes} ${ampm}`;
     };
 
+    // Updated Date handling functions with past date blocking
     const onConfirmationDateChange = (event, selectedDate) => {
         if (Platform.OS === 'android') {
             setShowConfirmationDatePicker(false);
         }
+        
         if (selectedDate) {
+            const currentDate = getCurrentDate();
+            // Check if selected date is in the past
+            if (selectedDate < currentDate) {
+                Alert.alert(
+                    "Invalid Date", 
+                    "Please select a future date for confirmation.",
+                    [{ text: "OK" }]
+                );
+                return;
+            }
             handleChange("petsaNgKumpil", formatDate(selectedDate));
         }
     };
@@ -97,7 +114,18 @@ const ConfirmationForm = () => {
         if (Platform.OS === 'android') {
             setShowFirstCommunionDatePicker(false);
         }
+        
         if (selectedDate) {
+            const currentDate = getCurrentDate();
+            // Check if selected date is in the future (First Communion should be in the past)
+            if (selectedDate > currentDate) {
+                Alert.alert(
+                    "Invalid Date", 
+                    "First Communion date cannot be in the future.",
+                    [{ text: "OK" }]
+                );
+                return;
+            }
             handleChange("petsaNg1stCommunion", formatDate(selectedDate));
         }
     };
@@ -106,7 +134,18 @@ const ConfirmationForm = () => {
         if (Platform.OS === 'android') {
             setShowBaptismDatePicker(false);
         }
+        
         if (selectedDate) {
+            const currentDate = getCurrentDate();
+            // Check if selected date is in the future (Baptism should be in the past)
+            if (selectedDate > currentDate) {
+                Alert.alert(
+                    "Invalid Date", 
+                    "Baptism date cannot be in the future.",
+                    [{ text: "OK" }]
+                );
+                return;
+            }
             handleChange("petsaNgBinyag", formatDate(selectedDate));
         }
     };
@@ -130,6 +169,36 @@ const ConfirmationForm = () => {
     };
 
     const handleSubmit = () => {
+        // Validate dates before submission
+        const currentDate = getCurrentDate();
+        
+        // Check confirmation date (should be future)
+        if (formData.petsaNgKumpil && formData.petsaNgKumpil !== "N/A") {
+            const confirmationDate = new Date(formData.petsaNgKumpil);
+            if (confirmationDate < currentDate) {
+                Alert.alert("Invalid Date", "Confirmation date must be in the future.");
+                return;
+            }
+        }
+
+        // Check first communion date (should be past)
+        if (formData.petsaNg1stCommunion && formData.petsaNg1stCommunion !== "N/A") {
+            const firstCommunionDate = new Date(formData.petsaNg1stCommunion);
+            if (firstCommunionDate > currentDate) {
+                Alert.alert("Invalid Date", "First Communion date must be in the past.");
+                return;
+            }
+        }
+
+        // Check baptism date (should be past)
+        if (formData.petsaNgBinyag && formData.petsaNgBinyag !== "N/A") {
+            const baptismDate = new Date(formData.petsaNgBinyag);
+            if (baptismDate > currentDate) {
+                Alert.alert("Invalid Date", "Baptism date must be in the past.");
+                return;
+            }
+        }
+
         const isEmptyField = Object.values(formData).some((value) => {
             return (typeof value === 'string' && value.trim() === '') || value === null || value === undefined;
         });
@@ -254,13 +323,14 @@ const ConfirmationForm = () => {
                         keyboardShouldPersistTaps="handled"
                         showsVerticalScrollIndicator={false}
                     >
-                        {/* Date Pickers */}
+                        {/* Updated Date Pickers with minimumDate */}
                         {showConfirmationDatePicker && (
                             <DateTimePicker
                                 value={new Date()}
                                 mode="date"
                                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                                 onChange={onConfirmationDateChange}
+                                minimumDate={new Date()} // Block past dates for confirmation
                             />
                         )}
 
@@ -270,6 +340,7 @@ const ConfirmationForm = () => {
                                 mode="date"
                                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                                 onChange={onFirstCommunionDateChange}
+                                maximumDate={new Date()} // Block future dates for first communion
                             />
                         )}
 
@@ -279,6 +350,7 @@ const ConfirmationForm = () => {
                                 mode="date"
                                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                                 onChange={onBaptismDateChange}
+                                maximumDate={new Date()} // Block future dates for baptism
                             />
                         )}
 
@@ -759,14 +831,14 @@ const ConfirmationForm = () => {
                                             <PreviewField label="Father's Name" value={formData.pangalanNgAma} />
                                             <PreviewField label="Father's Birthplace" value={formData.lugarNgKapanganakanAma} />
                                             <PreviewField label="Father's Parish" value={formData.tagaSaangParokyaAma} />
-                                            <PreviewField label="Father's Province" value={formData.saanglalawiganAma} />
+                                            <PreviewField label="Father's Province" value={formData.saangLalawiganAma} />
                                         </PreviewSection>
 
                                         <PreviewSection title="Mother's Information" icon="woman">
                                             <PreviewField label="Mother's Name" value={formData.pangalanNgIna} />
                                             <PreviewField label="Mother's Birthplace" value={formData.lugarNgKapanganakanIna} />
                                             <PreviewField label="Mother's Parish" value={formData.tagaSaangParokyaIna} />
-                                            <PreviewField label="Mother's Province" value={formData.saanglalawiganIna} />
+                                            <PreviewField label="Mother's Province" value={formData.saangLalawiganIna} />
                                         </PreviewSection>
 
                                         <PreviewSection title="Baptism Information" icon="water">

@@ -50,6 +50,11 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
     const scrollViewRef = useRef();
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
+    // Get current date for maximum date validation (birth date should be in the past)
+    const getCurrentDate = () => {
+        return new Date();
+    };
+
     // Improved Date handling functions for both Android and iOS
     const formatDate = (date) => {
         const day = date.getDate().toString().padStart(2, '0');
@@ -58,11 +63,22 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
         return `${year}-${month}-${day}`;
     };
 
+    // Updated Date handling function with future date blocking for birth date
     const onDateChange = (event, selectedDate) => {
         if (Platform.OS === 'android') {
             setShowDatePicker(false);
         }
         if (selectedDate) {
+            const currentDate = getCurrentDate();
+            // Check if selected date is in the future (birth date should be in the past)
+            if (selectedDate > currentDate) {
+                Alert.alert(
+                    "Invalid Date", 
+                    "Birth date cannot be in the future.",
+                    [{ text: "OK" }]
+                );
+                return;
+            }
             handleChange('birthDate', formatDate(selectedDate));
         }
     };
@@ -102,6 +118,15 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
             }
         });
         
+        // Validate birth date (should be in the past)
+        if (formData.birthDate && formData.birthDate !== "N/A") {
+            const birthDate = new Date(formData.birthDate);
+            const currentDate = getCurrentDate();
+            if (birthDate > currentDate) {
+                newErrors.birthDate = "Birth date cannot be in the future";
+            }
+        }
+        
         // Validate contact number
         if (formData.contactNumber && !/^\d{11}$/.test(formData.contactNumber)) {
             newErrors.contactNumber = "Contact number must be 11 digits";
@@ -140,6 +165,12 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
     };
 
     const handleConfirm = async () => {
+        // Final validation before submission
+        if (!validateForm()) {
+            Alert.alert("Validation Error", "Please fix all errors before submitting.");
+            return;
+        }
+
         closePreviewModal();
 
         try {
@@ -418,13 +449,14 @@ const ReligiousLifeFormScreen = ({ navigation }) => {
                     ref={scrollViewRef}
                     keyboardShouldPersistTaps="handled"
                 >
-                    {/* Date Picker */}
+                    {/* Updated Date Picker with maximumDate */}
                     {showDatePicker && (
                         <DateTimePicker
                             value={new Date()}
                             mode="date"
                             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={onDateChange}
+                            maximumDate={new Date()} // Block future dates for birth date
                         />
                     )}
 
