@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => '__root__',
-        'pretty_version' => 'dev-master',
-        'version' => 'dev-master',
-        'reference' => 'c3f9a71eecb3e05f447fe727447f6d6601793b9d',
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'df0136f11745fdcc030e80952aa65504aa046fcc',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         '__root__' => array(
-            'pretty_version' => 'dev-master',
-            'version' => 'dev-master',
-            'reference' => 'c3f9a71eecb3e05f447fe727447f6d6601793b9d',
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'df0136f11745fdcc030e80952aa65504aa046fcc',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -31,6 +31,15 @@
             'reference' => '3bbe7ba9578724c7e1f47fcd17c881c0995baaad',
             'type' => 'library',
             'install_path' => __DIR__ . '/../mongodb/mongodb',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'phpmailer/phpmailer' => array(
+            'pretty_version' => 'v7.0.0',
+            'version' => '7.0.0.0',
+            'reference' => 'c7111310c6116ba508a6a170a89eaaed2129bd42',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../phpmailer/phpmailer',
             'aliases' => array(),
             'dev_requirement' => false,
         ),

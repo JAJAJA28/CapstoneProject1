@@ -98,55 +98,11 @@ export default function StartupScreen() {
               Ang Mobile Application na ito ay para LAMANG sa mga LEGITIMONG PARISHIONER ng PAROKYA NG SAN RAFAEL ARKANGHEL, MONTALBAN RIZAL.
             </Text>
             
-            <View style={styles.coverageSection}>
-              <Text style={styles.coverageTitle}>COVERED AREAS (Sakop na Lugar):</Text>
-              
-              <View style={styles.areaList}>
-                <View style={styles.areaItem}>
-                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
-                  <Text style={styles.areaText}>Banay-banay</Text>
-                </View>
-                <View style={styles.areaItem}>
-                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
-                  <Text style={styles.areaText}>Burgos</Text>
-                </View>
-                <View style={styles.areaItem}>
-                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
-                  <Text style={styles.areaText}>Gerónimo</Text>
-                </View>
-                <View style={styles.areaItem}>
-                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
-                  <Text style={styles.areaText}>Macabud</Text>
-                </View>
-                <View style={styles.areaItem}>
-                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
-                  <Text style={styles.areaText}>Manggahan</Text>
-                </View>
-                <View style={styles.areaItem}>
-                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
-                  <Text style={styles.areaText}>Marcy</Text>
-                </View>
-                <View style={styles.areaItem}>
-                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
-                  <Text style={styles.areaText}>Puray</Text>
-                </View>
-                <View style={styles.areaItem}>
-                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
-                  <Text style={styles.areaText}>Rodriguez (Poblacion)</Text>
-                </View>
-                <View style={styles.areaItem}>
-                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
-                  <Text style={styles.areaText}>San Isidro</Text>
-                </View>
-                <View style={styles.areaItem}>
-                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
-                  <Text style={styles.areaText}>San Jose</Text>
-                </View>
-                <View style={styles.areaItem}>
-                  <Ionicons name="location-sharp" size={16} color="#4CAF50" />
-                  <Text style={styles.areaText}>San Rafael</Text>
-                </View>
-              </View>
+            <View style={styles.transactionWarning}>
+              <Ionicons name="warning" size={20} color="#D84315" />
+              <Text style={styles.transactionWarningText}>
+                MGA TRANSACTION AY HINDI MA-PROPROSESO KUNG HINDI LEGITIMONG NASAKUPAN NG PAROKYA
+              </Text>
             </View>
 
             <View style={styles.featuresList}>
@@ -163,12 +119,20 @@ export default function StartupScreen() {
                 <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
                 <Text style={styles.featureText}>Mass Schedules</Text>
               </View>
+              <View style={styles.featureItem}>
+                <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
+                <Text style={styles.featureText}>Realtime</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
+                <Text style={styles.featureText}>Donations</Text>
+              </View>
             </View>
           </ScrollView>
 
           <View style={styles.agreementSection}>
             <Text style={styles.agreementText}>
-              By continuing, I confirm that I am a legitimate parishioner of St. Raphael the Archangel Parish.
+              By continuing, I confirm that I am a legitimate parishioner of St. Raphael the Archangel Parish within the covered areas.
             </Text>
           </View>
 
@@ -249,6 +213,13 @@ export default function StartupScreen() {
           For St. Raphael the Archangel Parishioners
         </Text>
 
+        <View style={styles.coverageReminder}>
+          <Ionicons name="information-circle" size={16} color="#636e72" />
+          <Text style={styles.coverageReminderText}>
+            Available only for legitimate parishioners within parish coverage
+          </Text>
+        </View>
+
         {/* SIMPLE NAVIGATION LANG */}
         <TouchableOpacity
           style={styles.createAccountButton}
@@ -279,8 +250,6 @@ export default function StartupScreen() {
     </SafeAreaView>
   );
 }
-
-// ... (styles remain the same as previous version)
 
 const styles = StyleSheet.create({
   container: {
@@ -374,7 +343,7 @@ const styles = StyleSheet.create({
   appTagline: {
     fontSize: width * 0.04,
     textAlign: "center",
-    marginBottom: height * 0.06,
+    marginBottom: height * 0.03,
     color: '#636e72',
     lineHeight: width * 0.055,
   },
@@ -382,6 +351,25 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: width * 0.045,
     color: '#2d3436',
+  },
+  coverageReminder: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: height * 0.04,
+    paddingHorizontal: 10,
+    backgroundColor: '#FFF9C4',
+    padding: 10,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#F57C00',
+  },
+  coverageReminderText: {
+    fontSize: width * 0.03,
+    color: '#5D4037',
+    marginLeft: 6,
+    fontStyle: 'italic',
+    fontWeight: '500',
+    flex: 1,
   },
   createAccountButton: {
     width: "100%",
@@ -427,18 +415,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 8,
   },
-  coverageReminder: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: height * 0.02,
-    paddingHorizontal: 10,
-  },
-  coverageReminderText: {
-    fontSize: width * 0.03,
-    color: '#636e72',
-    marginLeft: 6,
-    fontStyle: 'italic',
-  },
   mainFooter: {
     position: 'absolute',
     bottom: height * 0.03,
@@ -451,13 +427,6 @@ const styles = StyleSheet.create({
     color: '#636e72',
     textAlign: 'center',
     fontWeight: '500',
-  },
-  mainFooterSubText: {
-    fontSize: width * 0.025,
-    color: '#636e72',
-    textAlign: 'center',
-    fontStyle: 'italic',
-    marginTop: 2,
   },
   // Warning Modal Styles
   warningModalContainer: {
@@ -521,80 +490,23 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontWeight: '600',
   },
-  coverageSection: {
-    backgroundColor: '#F8F9FA',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#E9ECEF',
-  },
-  coverageTitle: {
-    fontSize: width * 0.036,
-    fontWeight: 'bold',
-    color: '#2D3748',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  areaList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  areaItem: {
+  transactionWarning: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '48%',
-    marginBottom: 8,
-    paddingVertical: 4,
-  },
-  areaText: {
-    fontSize: width * 0.032,
-    color: '#4A5568',
-    marginLeft: 6,
-    fontWeight: '500',
-  },
-  restrictionBox: {
-    backgroundColor: '#FFF5F5',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#FED7D7',
-  },
-  restrictionTitle: {
-    fontSize: width * 0.036,
-    fontWeight: 'bold',
-    color: '#C53030',
-    marginBottom: 8,
-  },
-  restrictionItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 6,
-  },
-  restrictionText: {
-    fontSize: width * 0.032,
-    color: '#744210',
-    marginLeft: 8,
-    flex: 1,
-    lineHeight: 18,
-  },
-  warningNote: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     padding: 12,
     borderRadius: 8,
     marginBottom: 15,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FF9800',
   },
-  warningNoteText: {
+  transactionWarningText: {
     fontSize: width * 0.032,
-    color: '#1565C0',
+    color: '#E65100',
     marginLeft: 8,
+    fontWeight: 'bold',
     flex: 1,
-    lineHeight: 18,
-    fontStyle: 'italic',
+    textAlign: 'center',
   },
   featuresList: {
     marginBottom: 15,
@@ -664,12 +576,5 @@ const styles = StyleSheet.create({
     color: '#757575',
     textAlign: 'center',
     fontWeight: '500',
-  },
-  footerSubText: {
-    fontSize: width * 0.025,
-    color: '#9E9E9E',
-    textAlign: 'center',
-    fontStyle: 'italic',
-    marginTop: 2,
   },
 });
